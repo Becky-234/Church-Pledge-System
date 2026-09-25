@@ -1,17 +1,19 @@
-const express = require('express');
-const router = express.Router();
+const express = require('express')
+const router = express.Router()
 const {
     getNotifications,
     createNotification,
     sendReminders,
     deleteNotification,
-} = require('../controllers/notificationController');
-const { protect } = require('../middleware/auth');
+} = require('../controllers/notificationController')
+const { protect } = require('../middleware/auth')
+const { canSendNotifications } = require('../middleware/roleMiddleware')
 
-router.use(protect);
+router.use(protect)
 
-router.route('/').get(getNotifications).post(createNotification);
-router.post('/reminders', sendReminders);
-router.delete('/:id', deleteNotification);
+router.get('/', getNotifications)
+router.post('/', canSendNotifications, createNotification)
+router.post('/reminders', canSendNotifications, sendReminders)
+router.delete('/:id', canSendNotifications, deleteNotification)
 
-module.exports = router;
+module.exports = router

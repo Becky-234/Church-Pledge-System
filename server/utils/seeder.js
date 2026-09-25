@@ -23,12 +23,19 @@ const seed = async () => {
         ]);
         console.log('Cleared existing data');
 
-        // Create admin
+        // Create users
         const admin = await User.create({
             name: 'Admin User',
             email: 'admin@church.com',
             password: 'Admin@123',
             role: 'admin',
+        });
+
+        const pastor = await User.create({
+            name: 'Pastor John',
+            email: 'pastor@church.com',
+            password: 'Pastor@123',
+            role: 'pastor',
         });
 
         const treasurer = await User.create({
@@ -37,7 +44,14 @@ const seed = async () => {
             password: 'Treasurer@123',
             role: 'treasurer',
         });
-        console.log('👤 Users created');
+
+        const member = await User.create({
+            name: 'Member User',
+            email: 'member@church.com',
+            password: 'Member@123',
+            role: 'member',
+        });
+        console.log('4 Users created');
 
         // Create members
         const members = await Member.insertMany([
@@ -47,7 +61,7 @@ const seed = async () => {
             { name: 'Sarah Williams', phone: '+256701000004', email: 'sarah@church.com', group: 'Youth Fellowship' },
             { name: 'David Kim', phone: '+256701000005', email: 'david@church.com', group: 'Choir' },
         ]);
-        console.log(`👥 ${members.length} members created`);
+        console.log(`${members.length} members created`);
 
         // Create campaigns
         const campaigns = await Campaign.insertMany([
@@ -89,7 +103,9 @@ const seed = async () => {
         console.log('\n Seed complete!\n');
         console.log('Login credentials:');
         console.log('   Admin:     admin@church.com / Admin@123');
-        console.log('   Treasurer: treasurer@church.com / Treasurer@123\n');
+        console.log('   Pastor:    pastor@church.com / Pastor@123');
+        console.log('   Treasurer: treasurer@church.com / Treasurer@123');
+        console.log('   Member:    member@church.com / Member@123\n');
 
         process.exit(0);
     } catch (err) {

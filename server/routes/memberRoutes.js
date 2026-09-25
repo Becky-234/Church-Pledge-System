@@ -1,5 +1,5 @@
-const express = require('express');
-const router = express.Router();
+const express = require('express')
+const router = express.Router()
 const {
     getMembers,
     getMember,
@@ -7,17 +7,23 @@ const {
     updateMember,
     deleteMember,
     getGroups,
-} = require('../controllers/memberController');
-const { protect } = require('../middleware/auth');
+} = require('../controllers/memberController')
+const { protect } = require('../middleware/auth')
+const {
+    canManageMembers,
+    canViewMembers,
+} = require('../middleware/roleMiddleware')
 
-router.use(protect);
+router.use(protect)
 
-router.route('/').get(getMembers).post(createMember);
-router.get('/groups', getGroups);
-router
-    .route('/:id')
-    .get(getMember)
-    .put(updateMember)
-    .delete(deleteMember);
+// Read access: admin, pastor, treasurer
+router.get('/', canViewMembers, getMembers)
+router.get('/groups', canViewMembers, getGroups)
+router.get('/:id', canViewMembers, getMember)
 
-module.exports = router;
+// Write access: admin only
+router.post('/', canManageMembers, createMember)
+router.put('/:id', canManageMembers, updateMember)
+router.delete('/:id', canManageMembers, deleteMember)
+
+module.exports = router

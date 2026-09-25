@@ -1,16 +1,20 @@
-const express = require('express');
-const router = express.Router();
+const express = require('express')
+const router = express.Router()
 const {
     getDashboard,
     exportExcel,
     exportPDF,
-} = require('../controllers/reportController');
-const { protect } = require('../middleware/auth');
+} = require('../controllers/reportController')
+const { protect } = require('../middleware/auth')
+const { canExportReports } = require('../middleware/roleMiddleware')
 
-router.use(protect);
+router.use(protect)
 
-router.get('/dashboard', getDashboard);
-router.get('/export/excel', exportExcel);
-router.get('/export/pdf', exportPDF);
+// Dashboard: everyone
+router.get('/dashboard', getDashboard)
 
-module.exports = router;
+// Reports: admin, pastor, treasurer
+router.get('/export/excel', canExportReports, exportExcel)
+router.get('/export/pdf', canExportReports, exportPDF)
+
+module.exports = router

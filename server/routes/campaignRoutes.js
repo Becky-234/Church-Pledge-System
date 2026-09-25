@@ -1,21 +1,24 @@
-const express = require('express');
-const router = express.Router();
+const express = require('express')
+const router = express.Router()
 const {
     getCampaigns,
     getCampaign,
     createCampaign,
     updateCampaign,
     deleteCampaign,
-} = require('../controllers/campaignController');
-const { protect } = require('../middleware/auth');
+} = require('../controllers/campaignController')
+const { protect } = require('../middleware/auth')
+const { canManageCampaigns } = require('../middleware/roleMiddleware')
 
-router.use(protect);
+router.use(protect)
 
-router.route('/').get(getCampaigns).post(createCampaign);
-router
-    .route('/:id')
-    .get(getCampaign)
-    .put(updateCampaign)
-    .delete(deleteCampaign);
+// Everyone can view campaigns
+router.get('/', getCampaigns)
+router.get('/:id', getCampaign)
 
-module.exports = router;
+// Only admin can create/edit/delete
+router.post('/', canManageCampaigns, createCampaign)
+router.put('/:id', canManageCampaigns, updateCampaign)
+router.delete('/:id', canManageCampaigns, deleteCampaign)
+
+module.exports = router

@@ -1,19 +1,22 @@
-const express = require('express');
-const router = express.Router();
+const express = require('express')
+const router = express.Router()
 const {
     getCollections,
     getCollection,
     createCollection,
     deleteCollection,
-} = require('../controllers/collectionController');
-const { protect } = require('../middleware/auth');
+} = require('../controllers/collectionController')
+const { protect } = require('../middleware/auth')
+const { canManageCollections } = require('../middleware/roleMiddleware')
 
-router.use(protect);
+router.use(protect)
 
-router.route('/').get(getCollections).post(createCollection);
-router
-    .route('/:id')
-    .get(getCollection)
-    .delete(deleteCollection);
+// Everyone can view collections
+router.get('/', getCollections)
+router.get('/:id', getCollection)
 
-module.exports = router;
+// Only admin and treasurer can manage
+router.post('/', canManageCollections, createCollection)
+router.delete('/:id', canManageCollections, deleteCollection)
+
+module.exports = router
