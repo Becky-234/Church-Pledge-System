@@ -37,28 +37,31 @@ const Register = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-secondary-50 p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-500 rounded-2xl mb-4 shadow-lg">
-            <Church className="w-8 h-8 text-white" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-secondary-50 p-4 sm:p-6 relative overflow-hidden">
+      <div className="pointer-events-none absolute -top-24 -left-24 w-72 h-72 bg-primary-300/40 rounded-full blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 -right-24 w-72 h-72 bg-secondary-300/40 rounded-full blur-3xl" />
+
+      <div className="w-full max-w-md relative z-10">
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-primary-500 rounded-2xl mb-4 shadow-lg">
+            <Church className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-secondary-800">Create Account</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-secondary-800">Create Account</h1>
           <p className="text-sm text-secondary-500 mt-1">
             Join Church Pledge System
           </p>
         </div>
 
-        <div className="card p-8">
+        <div className="glass-card">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label className="label">Full Name</label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
+                <User className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
                 <input
                   type="text"
                   placeholder="John Doe"
-                  className="input pl-10"
+                  className="input bg-white/70"
                   {...register('name', { required: 'Name is required' })}
                 />
               </div>
@@ -72,11 +75,11 @@ const Register = () => {
             <div>
               <label className="label">Email Address</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
+                <Mail className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
                 <input
                   type="email"
                   placeholder="you@example.com"
-                  className="input pl-10"
+                  className="input bg-white/70"
                   {...register('email', {
                     required: 'Email is required',
                     setValueAs: (v) => v?.trim().toLowerCase() || '',
@@ -93,11 +96,11 @@ const Register = () => {
             <div>
               <label className="label">Phone</label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
+                <Phone className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
                 <input
                   type="tel"
                   placeholder="+256 700 000 000"
-                  className="input pl-10"
+                  className="input bg-white/70"
                   {...register('phone')}
                 />
               </div>
@@ -106,11 +109,11 @@ const Register = () => {
             <div>
               <label className="label">Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
+                <Lock className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Min 8 chars, 1 number"
-                  className="input pl-10 pr-10"
+                  className="input input-icon-right bg-white/70"
                   {...register('password', {
                     required: 'Password is required',
                     minLength: { value: 8, message: 'Min 8 characters' },
@@ -123,7 +126,8 @@ const Register = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary-400 hover:text-secondary-600"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-secondary-400 hover:text-secondary-600"
+                  tabIndex={-1}
                 >
                   {showPassword ? (
                     <EyeOff className="w-4 h-4" />

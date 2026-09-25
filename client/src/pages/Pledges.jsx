@@ -159,11 +159,11 @@ const Pledges = () => {
       />
 
       {/* Filter */}
-      <div className="card mb-4">
+      <div className="glass-card mb-4">
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          className="input max-w-xs"
+          className="input !pl-4 max-w-xs bg-white/70"
         >
           <option value="">All Status</option>
           <option value="pending">Pending</option>
@@ -173,32 +173,36 @@ const Pledges = () => {
         </select>
       </div>
 
-      <div className="card">
+      <div className="glass-card !p-0 overflow-hidden">
         {loading ? (
-          <Loader />
+          <div className="p-6">
+            <Loader />
+          </div>
         ) : pledges.length === 0 ? (
-          <EmptyState
-            icon={HandCoins}
-            title="No pledges yet"
-            description={
-              canManagePledges
-                ? 'Assign pledges to members to start tracking.'
-                : 'No pledges have been assigned yet.'
-            }
-            action={
-              canManagePledges && (
-                <button onClick={openCreate} className="btn btn-primary mt-2">
-                  <Plus className="w-4 h-4" />
-                  Create Pledge
-                </button>
-              )
-            }
-          />
+          <div className="p-6">
+            <EmptyState
+              icon={HandCoins}
+              title="No pledges yet"
+              description={
+                canManagePledges
+                  ? 'Assign pledges to members to start tracking.'
+                  : 'No pledges have been assigned yet.'
+              }
+              action={
+                canManagePledges && (
+                  <button onClick={openCreate} className="btn btn-primary mt-2">
+                    <Plus className="w-4 h-4" />
+                    Create Pledge
+                  </button>
+                )
+              }
+            />
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-secondary-100">
+                <tr className="border-b border-white/60 bg-white/40">
                   <th className="text-left py-3 px-4 text-xs font-semibold text-secondary-500 uppercase">
                     Member
                   </th>
@@ -231,7 +235,7 @@ const Pledges = () => {
                 {pledges.map((p) => (
                   <tr
                     key={p._id}
-                    className="border-b border-secondary-50 hover:bg-secondary-50"
+                    className="border-b border-white/60 hover:bg-white/60 transition"
                   >
                     <td className="py-3 px-4 text-sm font-medium text-secondary-800">
                       {p.member?.name || 'N/A'}
@@ -261,14 +265,14 @@ const Pledges = () => {
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => openEdit(p)}
-                            className="p-1.5 rounded-lg hover:bg-secondary-100"
+                            className="p-1.5 rounded-lg hover:bg-white/80"
                             title="Edit"
                           >
                             <Edit2 className="w-4 h-4 text-secondary-500" />
                           </button>
                           <button
                             onClick={() => setDeleteId(p._id)}
-                            className="p-1.5 rounded-lg hover:bg-red-50"
+                            className="p-1.5 rounded-lg hover:bg-red-50/80"
                             title="Delete"
                           >
                             <Trash2 className="w-4 h-4 text-red-500" />
@@ -297,7 +301,7 @@ const Pledges = () => {
               <div>
                 <label className="label">Member *</label>
                 <select
-                  className="input"
+                  className="input !pl-4"
                   {...register('member', { required: 'Member is required' })}
                 >
                   <option value="">Select member</option>
@@ -317,7 +321,7 @@ const Pledges = () => {
               <div>
                 <label className="label">Campaign *</label>
                 <select
-                  className="input"
+                  className="input !pl-4"
                   {...register('campaign', { required: 'Campaign is required' })}
                 >
                   <option value="">Select campaign</option>
@@ -340,7 +344,7 @@ const Pledges = () => {
                 <label className="label">Amount (UGX) *</label>
                 <input
                   type="number"
-                  className="input"
+                  className="input !pl-4"
                   placeholder="100000"
                   {...register('amount', {
                     required: 'Amount is required',
@@ -358,7 +362,7 @@ const Pledges = () => {
                 <label className="label">Due Date *</label>
                 <input
                   type="date"
-                  className="input"
+                  className="input !pl-4"
                   {...register('dueDate', { required: 'Due date is required' })}
                 />
                 {errors.dueDate && (
@@ -373,7 +377,7 @@ const Pledges = () => {
               <label className="label">Description</label>
               <textarea
                 rows="3"
-                className="input"
+                className="input !pl-4"
                 placeholder="Additional notes..."
                 {...register('description')}
               />

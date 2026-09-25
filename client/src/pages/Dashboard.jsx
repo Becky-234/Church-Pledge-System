@@ -95,6 +95,30 @@ const Dashboard = () => {
     scales: { y: { beginAtZero: true } },
   }
 
+  const secondaryStats = [
+    {
+      icon: TrendingUp,
+      label: 'Collection Rate',
+      value: `${data.collectionRate}%`,
+      gradient: 'from-primary-400 to-primary-600',
+      glow: 'shadow-primary-500/30',
+    },
+    {
+      icon: DollarSign,
+      label: 'Outstanding Balance',
+      value: `UGX ${Number(data.balance).toLocaleString()}`,
+      gradient: 'from-amber-400 to-amber-600',
+      glow: 'shadow-amber-500/30',
+    },
+    {
+      icon: Wallet,
+      label: 'Total Collections',
+      value: data.totalCollections,
+      gradient: 'from-emerald-400 to-emerald-600',
+      glow: 'shadow-emerald-500/30',
+    },
+  ]
+
   return (
     <div>
       <PageHeader
@@ -132,50 +156,31 @@ const Dashboard = () => {
 
       {/* Secondary Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        <div className="card">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-primary-50 rounded-lg">
-              <TrendingUp className="w-5 h-5 text-primary-600" />
-            </div>
-            <div>
-              <p className="text-sm text-secondary-500">Collection Rate</p>
-              <p className="text-xl font-bold text-secondary-800">
-                {data.collectionRate}%
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="card">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-amber-50 rounded-lg">
-              <DollarSign className="w-5 h-5 text-amber-600" />
-            </div>
-            <div>
-              <p className="text-sm text-secondary-500">Outstanding Balance</p>
-              <p className="text-xl font-bold text-secondary-800">
-                UGX {Number(data.balance).toLocaleString()}
-              </p>
+        {secondaryStats.map((stat) => (
+          <div
+            key={stat.label}
+            className="glass-card !p-5 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-12 h-12 shrink-0 rounded-2xl bg-gradient-to-br ${stat.gradient} shadow-lg ${stat.glow} flex items-center justify-center`}
+              >
+                <stat.icon className="w-6 h-6 text-white" strokeWidth={2.5} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm text-secondary-500">{stat.label}</p>
+                <p className="text-xl font-bold text-secondary-800 truncate">
+                  {stat.value}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="card">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-emerald-50 rounded-lg">
-              <Wallet className="w-5 h-5 text-emerald-600" />
-            </div>
-            <div>
-              <p className="text-sm text-secondary-500">Total Collections</p>
-              <p className="text-xl font-bold text-secondary-800">
-                {data.totalCollections}
-              </p>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-        <div className="card">
+        <div className="glass-card">
           <h3 className="font-semibold text-secondary-800 mb-4">
             Pledges Overview
           </h3>
@@ -183,7 +188,7 @@ const Dashboard = () => {
             <Bar data={barData} options={chartOptions} />
           </div>
         </div>
-        <div className="card">
+        <div className="glass-card">
           <h3 className="font-semibold text-secondary-800 mb-4">
             Collection Progress
           </h3>
@@ -198,13 +203,13 @@ const Dashboard = () => {
 
       {/* Recent Activity + Overdue */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="card">
+        <div className="glass-card">
           <h3 className="font-semibold text-secondary-800 mb-4">
             Recent Collections
           </h3>
           <RecentActivity collections={data.recentCollections || []} />
         </div>
-        <div className="card">
+        <div className="glass-card">
           <h3 className="font-semibold text-secondary-800 mb-4">
             Overdue Pledges
           </h3>

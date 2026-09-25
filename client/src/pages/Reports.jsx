@@ -57,7 +57,7 @@ const Reports = () => {
           title="Reports & Exports"
           description="Download comprehensive reports"
         />
-        <div className="card">
+        <div className="glass-card">
           <EmptyState
             icon={ShieldAlert}
             title="Access Denied"
@@ -77,10 +77,10 @@ const Reports = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Excel Card */}
-        <div className="card">
+        <div className="glass-card hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
           <div className="flex items-start gap-4 mb-4">
-            <div className="p-3 bg-emerald-50 rounded-xl">
-              <FileSpreadsheet className="w-7 h-7 text-emerald-600" />
+            <div className="w-14 h-14 shrink-0 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center">
+              <FileSpreadsheet className="w-7 h-7 text-white" strokeWidth={2} />
             </div>
             <div>
               <h3 className="font-semibold text-secondary-800 mb-1">
@@ -103,10 +103,10 @@ const Reports = () => {
         </div>
 
         {/* PDF Card */}
-        <div className="card">
+        <div className="glass-card hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
           <div className="flex items-start gap-4 mb-4">
-            <div className="p-3 bg-red-50 rounded-xl">
-              <FileText className="w-7 h-7 text-red-500" />
+            <div className="w-14 h-14 shrink-0 rounded-2xl bg-gradient-to-br from-red-400 to-red-600 shadow-lg shadow-red-500/30 flex items-center justify-center">
+              <FileText className="w-7 h-7 text-white" strokeWidth={2} />
             </div>
             <div>
               <h3 className="font-semibold text-secondary-800 mb-1">
@@ -130,7 +130,7 @@ const Reports = () => {
       </div>
 
       {/* Info */}
-      <div className="card mt-6 bg-blue-50 border-blue-100">
+      <div className="rounded-2xl p-6 mt-6 bg-blue-50/60 backdrop-blur-md border border-blue-200/60 shadow-sm">
         <h3 className="font-semibold text-blue-900 mb-2">Report Contents</h3>
         <ul className="text-sm text-blue-800 space-y-1 list-disc pl-5">
           <li>

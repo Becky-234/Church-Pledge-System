@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,7 +11,7 @@
 }
 
 body {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Poppins', system-ui, sans-serif;
   background-color: #f8fafc;
   color: #1e293b;
   -webkit-font-smoothing: antialiased;
@@ -36,7 +38,11 @@ body {
 
 /* Utility classes */
 .input {
-  @apply w-full px-4 py-2.5 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-sm;
+  @apply w-full pl-11 pr-4 py-2.5 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-sm placeholder:text-secondary-400;
+}
+
+.input-icon-right {
+  @apply pr-11;
 }
 
 .label {
@@ -65,6 +71,15 @@ body {
 
 .card {
   @apply bg-white rounded-xl shadow-sm border border-secondary-100 p-6;
+}
+
+.glass-card {
+  @apply rounded-2xl p-6 sm:p-8;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 32px rgba(31, 41, 55, 0.1);
 }
 
 .card-header {

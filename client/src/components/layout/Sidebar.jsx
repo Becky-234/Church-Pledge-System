@@ -35,18 +35,18 @@ const Sidebar = ({ isOpen, onClose }) => {
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
           onClick={onClose}
         />
       )}
 
       <aside
-        className={`fixed lg:static top-0 left-0 h-full w-64 bg-white border-r border-secondary-100 z-50 transform transition-transform duration-300 ${
+        className={`fixed lg:static top-0 left-0 h-full w-64 bg-white/70 backdrop-blur-xl border-r border-white/60 shadow-[4px_0_30px_rgba(0,0,0,0.04)] z-50 transform transition-transform duration-300 ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
-        <div className="flex items-center gap-3 h-16 px-6 border-b border-secondary-100">
-          <div className="p-2 bg-primary-500 rounded-lg">
+        <div className="flex items-center gap-3 h-16 px-6 border-b border-white/60">
+          <div className="p-2 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg shadow-sm shadow-primary-500/30">
             <Church className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -63,15 +63,28 @@ const Sidebar = ({ isOpen, onClose }) => {
               end={item.end}
               onClick={onClose}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
+                `group relative flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? 'bg-primary-50 text-primary-600'
-                    : 'text-secondary-600 hover:bg-secondary-50 hover:text-secondary-800'
+                    ? 'bg-gradient-to-r from-primary-500 to-primary-400 text-white shadow-md shadow-primary-500/30'
+                    : 'text-secondary-600 hover:bg-white/80 hover:text-primary-600 hover:shadow-sm hover:translate-x-0.5'
                 }`
               }
             >
-              <item.icon className="w-4 h-4" />
-              <span>{item.label}</span>
+              {({ isActive }) => (
+                <>
+                  <span
+                    className={`absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-white transition-all duration-200 ${
+                      isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-40 group-hover:bg-primary-400'
+                    }`}
+                  />
+                  <item.icon
+                    className={`w-4 h-4 transition-transform duration-200 ${
+                      isActive ? '' : 'group-hover:scale-110'
+                    }`}
+                  />
+                  <span>{item.label}</span>
+                </>
+              )}
             </NavLink>
           ))}
         </nav>

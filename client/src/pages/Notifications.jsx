@@ -154,7 +154,7 @@ const Notifications = () => {
         }
       />
 
-      <div className="card">
+      <div className="glass-card">
         {loading ? (
           <Loader />
         ) : notifications.length === 0 ? (
@@ -168,14 +168,14 @@ const Notifications = () => {
             }
           />
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {notifications.map((n) => (
               <div
                 key={n._id}
-                className="flex items-start gap-3 p-4 border border-secondary-100 rounded-lg hover:bg-secondary-50"
+                className="flex items-start gap-3 p-4 rounded-xl bg-white/60 backdrop-blur-sm border border-white/60 hover:bg-white/90 hover:shadow-sm transition-all duration-200"
               >
-                <div className="p-2 bg-primary-50 rounded-lg">
-                  <Bell className="w-4 h-4 text-primary-600" />
+                <div className="w-10 h-10 shrink-0 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 shadow-sm shadow-primary-500/30 flex items-center justify-center">
+                  <Bell className="w-5 h-5 text-white" strokeWidth={2.5} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-1">
@@ -205,7 +205,7 @@ const Notifications = () => {
                 {canSendNotifications && (
                   <button
                     onClick={() => handleDelete(n._id)}
-                    className="p-1.5 rounded-lg hover:bg-red-50"
+                    className="p-1.5 rounded-lg hover:bg-red-50/80 transition"
                     title="Delete"
                   >
                     <Trash2 className="w-4 h-4 text-red-500" />
@@ -228,7 +228,7 @@ const Notifications = () => {
             <div>
               <label className="label">Recipient *</label>
               <select
-                className="input"
+                className="input !pl-4"
                 {...register('recipient', {
                   required: 'Recipient is required',
                 })}
@@ -251,7 +251,7 @@ const Notifications = () => {
               <div>
                 <label className="label">Type *</label>
                 <select
-                  className="input"
+                  className="input !pl-4"
                   {...register('type', { required: true })}
                 >
                   <option value="announcement">Announcement</option>
@@ -262,7 +262,7 @@ const Notifications = () => {
               <div>
                 <label className="label">Channel *</label>
                 <select
-                  className="input"
+                  className="input !pl-4"
                   {...register('channel', { required: true })}
                 >
                   <option value="in_app">In-App</option>
@@ -276,7 +276,7 @@ const Notifications = () => {
               <label className="label">Subject</label>
               <input
                 type="text"
-                className="input"
+                className="input !pl-4"
                 placeholder="Optional subject"
                 {...register('subject')}
               />
@@ -286,7 +286,7 @@ const Notifications = () => {
               <label className="label">Message *</label>
               <textarea
                 rows="4"
-                className="input"
+                className="input !pl-4"
                 placeholder="Type your message..."
                 {...register('message', { required: 'Message is required' })}
               />

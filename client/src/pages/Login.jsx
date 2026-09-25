@@ -20,7 +20,6 @@ const Login = () => {
   const onSubmit = async (data) => {
     setLoading(true)
     try {
-      // Trim email + lowercase (passwords NOT trimmed)
       const email = data.email.trim().toLowerCase()
       await login(email, data.password)
       toast.success('Welcome back!')
@@ -33,20 +32,24 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-secondary-50 p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-secondary-50 p-4 sm:p-6 relative overflow-hidden">
+      {/* Decorative background blobs for the glass effect to sit on */}
+      <div className="pointer-events-none absolute -top-24 -left-24 w-72 h-72 bg-primary-300/40 rounded-full blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 -right-24 w-72 h-72 bg-secondary-300/40 rounded-full blur-3xl" />
+
+      <div className="w-full max-w-md relative z-10">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-500 rounded-2xl mb-4 shadow-lg">
-            <Church className="w-8 h-8 text-white" />
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-primary-500 rounded-2xl mb-4 shadow-lg">
+            <Church className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-secondary-800">Church Pledge</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-secondary-800">Church Pledge</h1>
           <p className="text-sm text-secondary-500 mt-1">Management System</p>
         </div>
 
-        {/* Card */}
-        <div className="card p-8">
-          <h2 className="text-xl font-bold text-secondary-800 mb-1">
+        {/* Glass Card */}
+        <div className="glass-card">
+          <h2 className="text-lg sm:text-xl font-bold text-secondary-800 mb-1">
             Welcome back
           </h2>
           <p className="text-sm text-secondary-500 mb-6">
@@ -57,11 +60,11 @@ const Login = () => {
             <div>
               <label className="label">Email Address</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
+                <Mail className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
                 <input
                   type="email"
                   placeholder="admin@church.com"
-                  className="input pl-10"
+                  className="input bg-white/70"
                   autoComplete="email"
                   {...register('email', {
                     required: 'Email is required',
@@ -79,18 +82,19 @@ const Login = () => {
             <div>
               <label className="label">Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
+                <Lock className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
-                  className="input pl-10 pr-10"
+                  className="input input-icon-right bg-white/70"
                   autoComplete="current-password"
                   {...register('password', { required: 'Password is required' })}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary-400 hover:text-secondary-600"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-secondary-400 hover:text-secondary-600"
+                  tabIndex={-1}
                 >
                   {showPassword ? (
                     <EyeOff className="w-4 h-4" />
@@ -128,22 +132,24 @@ const Login = () => {
           </div>
 
           {/* Demo credentials */}
-          <div className="mt-6 p-3 bg-secondary-50 rounded-lg border border-secondary-100">
+          <div className="mt-6 p-3 bg-white/50 backdrop-blur-sm rounded-lg border border-white/60">
             <p className="text-xs font-semibold text-secondary-600 mb-2">
               Demo Credentials:
             </p>
-            <p className="text-xs text-secondary-500">
-              <strong>Admin:</strong> admin@church.com / Admin@123
-            </p>
-            <p className="text-xs text-secondary-500">
-              <strong>Pastor:</strong> pastor@church.com / Pastor@123
-            </p>
-            <p className="text-xs text-secondary-500">
-              <strong>Treasurer:</strong> treasurer@church.com / Treasurer@123
-            </p>
-            <p className="text-xs text-secondary-500">
-              <strong>Member:</strong> member@church.com / Member@123
-            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1">
+              <p className="text-xs text-secondary-500">
+                <strong>Admin:</strong> admin@church.com / Admin@123
+              </p>
+              <p className="text-xs text-secondary-500">
+                <strong>Pastor:</strong> pastor@church.com / Pastor@123
+              </p>
+              <p className="text-xs text-secondary-500">
+                <strong>Treasurer:</strong> treasurer@church.com / Treasurer@123
+              </p>
+              <p className="text-xs text-secondary-500">
+                <strong>Member:</strong> member@church.com / Member@123
+              </p>
+            </div>
           </div>
         </div>
       </div>

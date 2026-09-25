@@ -133,22 +133,22 @@ const Members = () => {
       />
 
       {/* Filters */}
-      <div className="card mb-4">
+      <div className="glass-card mb-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
             <input
               type="text"
               placeholder="Search by name, phone, or email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="input pl-10"
+              className="input bg-white/70"
             />
           </div>
           <select
             value={filterGroup}
             onChange={(e) => setFilterGroup(e.target.value)}
-            className="input"
+            className="input !pl-4 bg-white/70"
           >
             <option value="">All Groups</option>
             {groups.map((g) => (
@@ -161,32 +161,36 @@ const Members = () => {
       </div>
 
       {/* List */}
-      <div className="card">
+      <div className="glass-card !p-0 overflow-hidden">
         {loading ? (
-          <Loader />
+          <div className="p-6">
+            <Loader />
+          </div>
         ) : members.length === 0 ? (
-          <EmptyState
-            icon={Users}
-            title="No members yet"
-            description={
-              canManageMembers
-                ? 'Add your first member to get started.'
-                : 'No members have been added yet.'
-            }
-            action={
-              canManageMembers && (
-                <button onClick={openCreate} className="btn btn-primary mt-2">
-                  <Plus className="w-4 h-4" />
-                  Add Member
-                </button>
-              )
-            }
-          />
+          <div className="p-6">
+            <EmptyState
+              icon={Users}
+              title="No members yet"
+              description={
+                canManageMembers
+                  ? 'Add your first member to get started.'
+                  : 'No members have been added yet.'
+              }
+              action={
+                canManageMembers && (
+                  <button onClick={openCreate} className="btn btn-primary mt-2">
+                    <Plus className="w-4 h-4" />
+                    Add Member
+                  </button>
+                )
+              }
+            />
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-secondary-100">
+                <tr className="border-b border-white/60 bg-white/40">
                   <th className="text-left py-3 px-4 text-xs font-semibold text-secondary-500 uppercase">
                     Name
                   </th>
@@ -216,11 +220,11 @@ const Members = () => {
                 {members.map((member) => (
                   <tr
                     key={member._id}
-                    className="border-b border-secondary-50 hover:bg-secondary-50 transition"
+                    className="border-b border-white/60 hover:bg-white/60 transition"
                   >
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-semibold text-xs">
+                        <div className="w-8 h-8 shrink-0 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 shadow-sm shadow-primary-500/30 flex items-center justify-center text-white font-semibold text-xs">
                           {member.name?.charAt(0).toUpperCase()}
                         </div>
                         <div>
@@ -253,14 +257,14 @@ const Members = () => {
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => openEdit(member)}
-                            className="p-1.5 rounded-lg hover:bg-secondary-100 transition"
+                            className="p-1.5 rounded-lg hover:bg-white/80 transition"
                             title="Edit"
                           >
                             <Edit2 className="w-4 h-4 text-secondary-500" />
                           </button>
                           <button
                             onClick={() => setDeleteId(member._id)}
-                            className="p-1.5 rounded-lg hover:bg-red-50 transition"
+                            className="p-1.5 rounded-lg hover:bg-red-50/80 transition"
                             title="Delete"
                           >
                             <Trash2 className="w-4 h-4 text-red-500" />
@@ -288,7 +292,7 @@ const Members = () => {
               <label className="label">Full Name *</label>
               <input
                 type="text"
-                className="input"
+                className="input !pl-4"
                 placeholder="John Doe"
                 {...register('name', { required: 'Name is required' })}
               />
@@ -303,7 +307,7 @@ const Members = () => {
               <label className="label">Phone *</label>
               <input
                 type="tel"
-                className="input"
+                className="input !pl-4"
                 placeholder="+256 700 000 000"
                 {...register('phone', { required: 'Phone is required' })}
               />
@@ -318,7 +322,7 @@ const Members = () => {
               <label className="label">Email</label>
               <input
                 type="email"
-                className="input"
+                className="input !pl-4"
                 placeholder="john@example.com"
                 {...register('email')}
               />
@@ -328,7 +332,7 @@ const Members = () => {
               <label className="label">Group *</label>
               <input
                 type="text"
-                className="input"
+                className="input !pl-4"
                 placeholder="Youth Fellowship"
                 {...register('group', { required: 'Group is required' })}
               />
@@ -343,7 +347,7 @@ const Members = () => {
               <label className="label">Address</label>
               <input
                 type="text"
-                className="input"
+                className="input !pl-4"
                 placeholder="123 Main Street"
                 {...register('address')}
               />

@@ -14,14 +14,14 @@ const RecentActivity = ({ collections = [] }) => {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5">
       {collections.map((item) => (
         <div
           key={item._id}
-          className="flex items-center gap-3 p-3 rounded-lg hover:bg-secondary-50 transition"
+          className="flex items-center gap-3 p-3 rounded-xl bg-white/60 backdrop-blur-sm border border-emerald-100/60 hover:bg-white/90 hover:border-emerald-200 hover:shadow-sm transition-all duration-200"
         >
-          <div className="w-9 h-9 rounded-full bg-emerald-50 flex items-center justify-center">
-            <Wallet className="w-4 h-4 text-emerald-600" />
+          <div className="w-10 h-10 shrink-0 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-sm shadow-emerald-500/30 flex items-center justify-center">
+            <Wallet className="w-5 h-5 text-white" strokeWidth={2.5} />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-secondary-800 truncate">
@@ -31,7 +31,7 @@ const RecentActivity = ({ collections = [] }) => {
               {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
             </p>
           </div>
-          <div className="text-right">
+          <div className="text-right shrink-0">
             <p className="text-sm font-semibold text-emerald-600">
               +UGX {Number(item.amount).toLocaleString()}
             </p>

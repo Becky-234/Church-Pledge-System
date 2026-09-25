@@ -120,7 +120,7 @@ const Campaigns = () => {
       {loading ? (
         <Loader />
       ) : campaigns.length === 0 ? (
-        <div className="card">
+        <div className="glass-card">
           <EmptyState
             icon={Megaphone}
             title="No campaigns yet"
@@ -151,10 +151,13 @@ const Campaigns = () => {
                 : 0
 
             return (
-              <div key={c._id} className="card">
+              <div
+                key={c._id}
+                className="glass-card hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+              >
                 <div className="flex items-start justify-between mb-3">
-                  <div className="p-2 bg-primary-50 rounded-lg">
-                    <Target className="w-5 h-5 text-primary-600" />
+                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary-400 to-primary-600 shadow-lg shadow-primary-500/30 flex items-center justify-center">
+                    <Target className="w-5 h-5 text-white" strokeWidth={2.5} />
                   </div>
                   <span className={`badge ${getStatusBadge(c.status)}`}>
                     {c.status}
@@ -197,15 +200,15 @@ const Campaigns = () => {
                       {progress}%
                     </span>
                   </div>
-                  <div className="w-full bg-secondary-100 rounded-full h-2">
+                  <div className="w-full bg-white/60 rounded-full h-2 overflow-hidden">
                     <div
-                      className="bg-primary-500 h-2 rounded-full transition-all"
+                      className="bg-gradient-to-r from-primary-400 to-primary-600 h-2 rounded-full transition-all"
                       style={{ width: `${progress}%` }}
                     />
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center pt-3 border-t border-secondary-100">
+                <div className="flex justify-between items-center pt-3 border-t border-white/60">
                   <span className="text-xs text-secondary-500">
                     Ends{' '}
                     {c.endDate
@@ -218,14 +221,14 @@ const Campaigns = () => {
                     <div className="flex gap-1">
                       <button
                         onClick={() => openEdit(c)}
-                        className="p-1.5 rounded-lg hover:bg-secondary-100"
+                        className="p-1.5 rounded-lg hover:bg-white/80"
                         title="Edit"
                       >
                         <Edit2 className="w-4 h-4 text-secondary-500" />
                       </button>
                       <button
                         onClick={() => setDeleteId(c._id)}
-                        className="p-1.5 rounded-lg hover:bg-red-50"
+                        className="p-1.5 rounded-lg hover:bg-red-50/80"
                         title="Delete"
                       >
                         <Trash2 className="w-4 h-4 text-red-500" />
@@ -251,7 +254,7 @@ const Campaigns = () => {
               <label className="label">Campaign Title *</label>
               <input
                 type="text"
-                className="input"
+                className="input !pl-4"
                 placeholder="New Church Building"
                 {...register('title', { required: 'Title is required' })}
               />
@@ -266,7 +269,7 @@ const Campaigns = () => {
               <label className="label">Description</label>
               <textarea
                 rows="3"
-                className="input"
+                className="input !pl-4"
                 placeholder="Describe the campaign purpose..."
                 {...register('description')}
               />
@@ -276,7 +279,7 @@ const Campaigns = () => {
               <label className="label">Target Amount (UGX) *</label>
               <input
                 type="number"
-                className="input"
+                className="input !pl-4"
                 placeholder="1000000"
                 {...register('targetAmount', {
                   required: 'Target amount is required',
@@ -295,7 +298,7 @@ const Campaigns = () => {
                 <label className="label">Start Date *</label>
                 <input
                   type="date"
-                  className="input"
+                  className="input !pl-4"
                   {...register('startDate', {
                     required: 'Start date is required',
                   })}
@@ -310,7 +313,7 @@ const Campaigns = () => {
                 <label className="label">End Date *</label>
                 <input
                   type="date"
-                  className="input"
+                  className="input !pl-4"
                   {...register('endDate', {
                     required: 'End date is required',
                   })}
@@ -326,7 +329,7 @@ const Campaigns = () => {
             {editing && (
               <div>
                 <label className="label">Status</label>
-                <select className="input" {...register('status')}>
+                <select className="input !pl-4" {...register('status')}>
                   <option value="active">Active</option>
                   <option value="completed">Completed</option>
                   <option value="cancelled">Cancelled</option>

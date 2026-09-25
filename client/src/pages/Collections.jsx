@@ -116,32 +116,36 @@ const Collections = () => {
         }
       />
 
-      <div className="card">
+      <div className="glass-card !p-0 overflow-hidden">
         {loading ? (
-          <Loader />
+          <div className="p-6">
+            <Loader />
+          </div>
         ) : collections.length === 0 ? (
-          <EmptyState
-            icon={Wallet}
-            title="No collections yet"
-            description={
-              canManageCollections
-                ? 'Record payments received from members.'
-                : 'No payments have been recorded yet.'
-            }
-            action={
-              canManageCollections && (
-                <button onClick={openCreate} className="btn btn-primary mt-2">
-                  <Plus className="w-4 h-4" />
-                  Record Collection
-                </button>
-              )
-            }
-          />
+          <div className="p-6">
+            <EmptyState
+              icon={Wallet}
+              title="No collections yet"
+              description={
+                canManageCollections
+                  ? 'Record payments received from members.'
+                  : 'No payments have been recorded yet.'
+              }
+              action={
+                canManageCollections && (
+                  <button onClick={openCreate} className="btn btn-primary mt-2">
+                    <Plus className="w-4 h-4" />
+                    Record Collection
+                  </button>
+                )
+              }
+            />
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-secondary-100">
+                <tr className="border-b border-white/60 bg-white/40">
                   <th className="text-left py-3 px-4 text-xs font-semibold text-secondary-500 uppercase">
                     Member
                   </th>
@@ -171,7 +175,7 @@ const Collections = () => {
                 {collections.map((c) => (
                   <tr
                     key={c._id}
-                    className="border-b border-secondary-50 hover:bg-secondary-50"
+                    className="border-b border-white/60 hover:bg-white/60 transition"
                   >
                     <td className="py-3 px-4 text-sm font-medium text-secondary-800">
                       {c.member?.name || 'N/A'}
@@ -197,7 +201,7 @@ const Collections = () => {
                       <td className="py-3 px-4 text-right">
                         <button
                           onClick={() => setDeleteId(c._id)}
-                          className="p-1.5 rounded-lg hover:bg-red-50"
+                          className="p-1.5 rounded-lg hover:bg-red-50/80"
                           title="Delete"
                         >
                           <Trash2 className="w-4 h-4 text-red-500" />
@@ -224,7 +228,7 @@ const Collections = () => {
             <div>
               <label className="label">Pledge *</label>
               <select
-                className="input"
+                className="input !pl-4"
                 {...register('pledge', { required: 'Pledge is required' })}
               >
                 <option value="">Select a pledge</option>
@@ -247,7 +251,7 @@ const Collections = () => {
                 <label className="label">Amount (UGX) *</label>
                 <input
                   type="number"
-                  className="input"
+                  className="input !pl-4"
                   placeholder="50000"
                   {...register('amount', {
                     required: 'Amount is required',
@@ -264,7 +268,7 @@ const Collections = () => {
               <div>
                 <label className="label">Payment Method *</label>
                 <select
-                  className="input"
+                  className="input !pl-4"
                   {...register('paymentMethod', { required: true })}
                 >
                   <option value="cash">Cash</option>
@@ -279,7 +283,7 @@ const Collections = () => {
               <label className="label">Reference</label>
               <input
                 type="text"
-                className="input"
+                className="input !pl-4"
                 placeholder="Transaction ID or receipt number"
                 {...register('reference')}
               />
@@ -287,7 +291,7 @@ const Collections = () => {
 
             <div>
               <label className="label">Notes</label>
-              <textarea rows="2" className="input" {...register('notes')} />
+              <textarea rows="2" className="input !pl-4" {...register('notes')} />
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
