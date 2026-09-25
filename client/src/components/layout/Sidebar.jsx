@@ -1,4 +1,5 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 import {
   LayoutDashboard,
   Users,
@@ -8,8 +9,12 @@ import {
   BarChart3,
   Bell,
   Church,
+  LogOut,
 } from 'lucide-react'
 import { usePermissions } from '../../hooks/usePermissions'
+import { useAuth } from '../../hooks/useAuth'
+import toast from 'react-hot-toast'
+import ConfirmDialog from '../common/ConfirmDialog'
 
 const Sidebar = ({ isOpen, onClose }) => {
   const {
@@ -20,6 +25,10 @@ const Sidebar = ({ isOpen, onClose }) => {
     canViewReports,
     canViewNotifications,
   } = usePermissions()
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
+  const [loggingOut, setLoggingOut] = useState(false)
 
   const navItems = [
     { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true, show: true },
@@ -31,6 +40,25 @@ const Sidebar = ({ isOpen, onClose }) => {
     { to: '/notifications', icon: Bell, label: 'Notifications', show: canViewNotifications },
   ].filter((item) => item.show)
 
+  const handleLogout = async () => {
+    setLoggingOut(true)
+    try {
+      logout()
+      toast.success('Logged out successfully')
+      navigate('/login')
+    } finally {
+      setLoggingOut(false)
+      setLogoutConfirmOpen(false)
+    }
+  }
+
+  const initials = user?.name
+    ?.split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+
   return (
     <>
       {isOpen && (
@@ -41,11 +69,11 @@ const Sidebar = ({ isOpen, onClose }) => {
       )}
 
       <aside
-        className={`fixed lg:static top-0 left-0 h-full w-64 bg-white/70 backdrop-blur-xl border-r border-white/60 shadow-[4px_0_30px_rgba(0,0,0,0.04)] z-50 transform transition-transform duration-300 ${
+        className={`fixed lg:static top-0 left-0 h-full w-64 bg-white/70 backdrop-blur-xl border-r border-white/60 shadow-[4px_0_30px_rgba(0,0,0,0.04)] z-50 flex flex-col transform transition-transform duration-300 ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
-        <div className="flex items-center gap-3 h-16 px-6 border-b border-white/60">
+        <div className="flex items-center gap-3 h-16 px-6 border-b border-white/60 shrink-0">
           <div className="p-2 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg shadow-sm shadow-primary-500/30">
             <Church className="w-5 h-5 text-white" />
           </div>
@@ -55,7 +83,7 @@ const Sidebar = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100%-4rem)]">
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -88,7 +116,43 @@ const Sidebar = ({ isOpen, onClose }) => {
             </NavLink>
           ))}
         </nav>
+
+        {/* User + Logout — pinned to bottom */}
+        <div className="p-4 border-t border-white/60 shrink-0">
+          <div className="flex items-center gap-3 mb-2 px-1">
+            <div className="w-8 h-8 shrink-0 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold text-xs shadow-sm shadow-primary-500/30">
+              {initials || 'U'}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-secondary-800 truncate">
+                {user?.name}
+              </p>
+              <p className="text-xs text-secondary-500 capitalize truncate">
+                {user?.role}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setLogoutConfirmOpen(true)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50/80 transition"
+          >
+            <LogOut className="w-4 h-4" />
+            Logout
+          </button>
+        </div>
       </aside>
+
+      <ConfirmDialog
+        isOpen={logoutConfirmOpen}
+        onClose={() => setLogoutConfirmOpen(false)}
+        onConfirm={handleLogout}
+        title="Log out?"
+        message="You'll need to sign in again to access your account."
+        confirmText="Log out"
+        cancelText="Stay signed in"
+        loading={loggingOut}
+        icon={LogOut}
+      />
     </>
   )
 }

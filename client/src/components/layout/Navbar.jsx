@@ -1,16 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
-import { Menu, LogOut, ChevronDown } from 'lucide-react'
+import { Menu, ChevronDown } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
-import { useNavigate } from 'react-router-dom'
-import toast from 'react-hot-toast'
-import ConfirmDialog from '../common/ConfirmDialog'
 
 const Navbar = ({ onMenuClick }) => {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
+  const { user } = useAuth()
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
-  const [loggingOut, setLoggingOut] = useState(false)
   const dropdownRef = useRef(null)
 
   useEffect(() => {
@@ -22,18 +16,6 @@ const Navbar = ({ onMenuClick }) => {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
-
-  const handleLogout = async () => {
-    setLoggingOut(true)
-    try {
-      logout()
-      toast.success('Logged out successfully')
-      navigate('/login')
-    } finally {
-      setLoggingOut(false)
-      setLogoutConfirmOpen(false)
-    }
-  }
 
   const initials = user?.name
     ?.split(' ')
@@ -75,35 +57,13 @@ const Navbar = ({ onMenuClick }) => {
 
         {dropdownOpen && (
           <div className="absolute right-0 mt-2 w-56 bg-white/80 backdrop-blur-xl rounded-lg shadow-lg border border-white/60 py-1 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
-            <div className="px-4 py-2 border-b border-white/60">
+            <div className="px-4 py-2">
               <p className="text-sm font-medium text-secondary-800">{user?.name}</p>
               <p className="text-xs text-secondary-500">{user?.email}</p>
             </div>
-            <button
-              onClick={() => {
-                setDropdownOpen(false)
-                setLogoutConfirmOpen(true)
-              }}
-              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50/80 transition"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </button>
           </div>
         )}
       </div>
-
-      <ConfirmDialog
-        isOpen={logoutConfirmOpen}
-        onClose={() => setLogoutConfirmOpen(false)}
-        onConfirm={handleLogout}
-        title="Log out?"
-        message="You'll need to sign in again to access your account."
-        confirmText="Log out"
-        cancelText="Stay signed in"
-        loading={loggingOut}
-        icon={LogOut}
-      />
     </header>
   )
 }
