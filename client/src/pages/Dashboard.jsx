@@ -30,7 +30,6 @@ ChartJS.register(
   Legend
 )
 
-// Draws the "Collection Rate" text in the doughnut's empty center
 const centerTextPlugin = {
   id: 'centerText',
   afterDraw(chart) {
@@ -56,6 +55,29 @@ const centerTextPlugin = {
     ctx.restore()
   },
 }
+
+const getGreeting = () => {
+  const hour = new Date().getHours()
+  if (hour < 12) return 'Good morning'
+  if (hour < 18) return 'Good afternoon'
+  return 'Good evening'
+}
+
+// Splits text into words, each wrapped for a staggered slide-up reveal
+const AnimatedWords = ({ text, delayStart = 0, className = '' }) => (
+  <>
+    {text.split(' ').map((word, i) => (
+      <span key={i} className="word-in mr-[0.3em]">
+        <span
+          style={{ animationDelay: `${delayStart + i * 0.08}s` }}
+          className={className}
+        >
+          {word}
+        </span>
+      </span>
+    ))}
+  </>
+)
 
 const Dashboard = () => {
   const { user } = useAuth()
@@ -91,11 +113,11 @@ const Dashboard = () => {
       {
         label: 'Amount (UGX)',
         data: [data.totalPledged, data.totalCollected, data.balance],
-        backgroundColor: ['#f0894f', '#34d399', '#fbbf24'],
-        hoverBackgroundColor: ['#e85d3a', '#10b981', '#f59e0b'],
-        borderRadius: 10,
+        backgroundColor: '#e85d3a',
+        hoverBackgroundColor: '#d94e2c',
+        borderRadius: 8,
         borderSkipped: false,
-        maxBarThickness: 56,
+        maxBarThickness: 48,
       },
     ],
   }
@@ -112,33 +134,24 @@ const Dashboard = () => {
         padding: 10,
         cornerRadius: 8,
         displayColors: false,
-        callbacks: {
-          label: (ctx) => `UGX ${Number(ctx.raw).toLocaleString()}`,
-        },
+        callbacks: { label: (ctx) => `UGX ${Number(ctx.raw).toLocaleString()}` },
       },
     },
     scales: {
       x: {
         grid: { display: false },
         border: { display: false },
-        ticks: {
-          font: { family: 'Poppins', size: 12, weight: '500' },
-          color: '#64748b',
-        },
+        ticks: { font: { family: 'Poppins', size: 12, weight: '500' }, color: '#64748b' },
       },
       y: {
         beginAtZero: true,
-        grid: { color: 'rgba(148, 163, 184, 0.15)' },
+        grid: { color: 'rgba(148, 163, 184, 0.12)' },
         border: { display: false },
         ticks: {
           font: { family: 'Poppins', size: 11 },
           color: '#94a3b8',
           callback: (value) =>
-            value >= 1000000
-              ? `${value / 1000000}M`
-              : value >= 1000
-              ? `${value / 1000}K`
-              : value,
+            value >= 1000000 ? `${value / 1000000}M` : value >= 1000 ? `${value / 1000}K` : value,
         },
       },
     },
@@ -149,11 +162,10 @@ const Dashboard = () => {
     datasets: [
       {
         data: [data.totalCollected, data.balance],
-        backgroundColor: ['#34d399', '#f0894f'],
-        hoverBackgroundColor: ['#10b981', '#e85d3a'],
+        backgroundColor: ['#34d399', '#e85d3a'],
         borderWidth: 4,
         borderColor: '#ffffff',
-        hoverOffset: 6,
+        hoverOffset: 4,
       },
     ],
   }
@@ -178,34 +190,39 @@ const Dashboard = () => {
         bodyFont: { family: 'Poppins', size: 12 },
         padding: 10,
         cornerRadius: 8,
-        callbacks: {
-          label: (ctx) => `UGX ${Number(ctx.raw).toLocaleString()}`,
-        },
+        callbacks: { label: (ctx) => `UGX ${Number(ctx.raw).toLocaleString()}` },
       },
     },
   }
 
+  const firstName = user?.name?.split(' ')[0] || 'User'
+
   return (
     <div>
-      <PageHeader
-        title={`Welcome back, ${user?.name?.split(' ')[0] || 'User'}!`}
-        description="Overview of all pledges, collections, and members"
-      />
+      {/* Welcome — staggered word-by-word slide-up */}
+      <div className="mb-6">
+        <p className="text-sm font-medium text-primary-600 mb-1 word-in">
+          <span style={{ animationDelay: '0s' }}>{getGreeting()}</span>
+        </p>
+        <h1 className="text-2xl font-bold text-secondary-800">
+          <AnimatedWords text={`Welcome back, ${firstName}`} delayStart={0.1} />
+        </h1>
+        <p className="text-sm text-secondary-500 mt-1 word-in">
+          <span style={{ animationDelay: '0.4s' }}>
+            Here's what's happening with your church today.
+          </span>
+        </p>
+      </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {/* Stats Grid — first card featured with gradient */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard
           icon={Users}
           label="Total Members"
           value={data.totalMembers}
-          color="primary"
+          featured
         />
-        <StatCard
-          icon={Megaphone}
-          label="Campaigns"
-          value={data.totalCampaigns}
-          color="info"
-        />
+        <StatCard icon={Megaphone} label="Campaigns" value={data.totalCampaigns} color="info" />
         <StatCard
           icon={HandCoins}
           label="Total Pledged"
@@ -221,47 +238,39 @@ const Dashboard = () => {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+      <div className="section-label">
+        <span className="text-xs font-semibold text-secondary-400 uppercase tracking-wide">
+          Overview
+        </span>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
         <div className="glass-card">
-          <div className="flex items-center justify-between mb-1">
-            <h3 className="font-semibold text-secondary-800">
-              Pledges Overview
-            </h3>
-            <span className="text-xs text-secondary-400">This period</span>
-          </div>
-          <div className="h-72 pt-3">
+          <h3 className="font-semibold text-secondary-800 mb-4">Pledges Overview</h3>
+          <div className="h-64">
             <Bar data={barData} options={barOptions} />
           </div>
         </div>
         <div className="glass-card">
-          <div className="flex items-center justify-between mb-1">
-            <h3 className="font-semibold text-secondary-800">
-              Collection Progress
-            </h3>
-            <span className="text-xs text-secondary-400">This period</span>
-          </div>
-          <div className="h-72 pt-3">
-            <Doughnut
-              data={doughnutData}
-              options={doughnutOptions}
-              plugins={[centerTextPlugin]}
-            />
+          <h3 className="font-semibold text-secondary-800 mb-4">Collection Progress</h3>
+          <div className="h-64">
+            <Doughnut data={doughnutData} options={doughnutOptions} plugins={[centerTextPlugin]} />
           </div>
         </div>
       </div>
 
-      {/* Recent Activity + Overdue */}
+      {/* Activity */}
+      <div className="section-label">
+        <span className="text-xs font-semibold text-secondary-400 uppercase tracking-wide">
+          Activity
+        </span>
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="glass-card">
-          <h3 className="font-semibold text-secondary-800 mb-4">
-            Recent Collections
-          </h3>
+          <h3 className="font-semibold text-secondary-800 mb-4">Recent Collections</h3>
           <RecentActivity collections={data.recentCollections || []} />
         </div>
         <div className="glass-card">
-          <h3 className="font-semibold text-secondary-800 mb-4">
-            Overdue Pledges
-          </h3>
+          <h3 className="font-semibold text-secondary-800 mb-4">Overdue Pledges</h3>
           <OverdueList pledges={data.overduePledges || []} />
         </div>
       </div>

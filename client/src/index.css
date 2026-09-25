@@ -109,3 +109,36 @@ body {
 .badge-secondary {
   @apply bg-secondary-100 text-secondary-700;
 }
+
+/* index.css — replace the earlier fadeInUp block with this */
+
+@keyframes wordIn {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.word-in {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+
+.word-in span {
+  display: inline-block;
+  animation: wordIn 0.5s cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+
+.section-label {
+  @apply flex items-center gap-2 mb-4;
+}
+
+.section-label::before {
+  content: '';
+  @apply w-1 h-4 rounded-full bg-primary-500;
+}
