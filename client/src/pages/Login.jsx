@@ -132,7 +132,7 @@ const Login = () => {
           </div>
 
           {/* Demo credentials */}
-          <div className="mt-6 p-3 bg-white/50 backdrop-blur-sm rounded-lg border border-white/60">
+          {/* <div className="mt-6 p-3 bg-white/50 backdrop-blur-sm rounded-lg border border-white/60">
             <p className="text-xs font-semibold text-secondary-600 mb-2">
               Demo Credentials:
             </p>
@@ -150,7 +150,7 @@ const Login = () => {
                 <strong>Member:</strong> member@church.com / Member@123
               </p>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

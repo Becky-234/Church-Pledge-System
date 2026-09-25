@@ -1,12 +1,5 @@
 import { useEffect, useState } from 'react'
-import {
-  Users,
-  Megaphone,
-  HandCoins,
-  Wallet,
-  TrendingUp,
-  DollarSign,
-} from 'lucide-react'
+import { Users, Megaphone, HandCoins, Wallet } from 'lucide-react'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -36,6 +29,33 @@ ChartJS.register(
   Tooltip,
   Legend
 )
+
+// Draws the "Collection Rate" text in the doughnut's empty center
+const centerTextPlugin = {
+  id: 'centerText',
+  afterDraw(chart) {
+    if (chart.config.type !== 'doughnut') return
+    const { ctx, chartArea } = chart
+    if (!chartArea) return
+    const { left, right, top, bottom } = chartArea
+    const centerX = (left + right) / 2
+    const centerY = (top + bottom) / 2
+    const [collected, outstanding] = chart.data.datasets[0].data
+    const total = collected + outstanding
+    const pct = total > 0 ? Math.round((collected / total) * 100) : 0
+
+    ctx.save()
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillStyle = '#1e293b'
+    ctx.font = '700 26px Poppins, sans-serif'
+    ctx.fillText(`${pct}%`, centerX, centerY - 8)
+    ctx.fillStyle = '#94a3b8'
+    ctx.font = '500 11px Poppins, sans-serif'
+    ctx.fillText('COLLECTED', centerX, centerY + 14)
+    ctx.restore()
+  },
+}
 
 const Dashboard = () => {
   const { user } = useAuth()
@@ -71,10 +91,57 @@ const Dashboard = () => {
       {
         label: 'Amount (UGX)',
         data: [data.totalPledged, data.totalCollected, data.balance],
-        backgroundColor: ['#e85d3a', '#10b981', '#f59e0b'],
-        borderRadius: 8,
+        backgroundColor: ['#f0894f', '#34d399', '#fbbf24'],
+        hoverBackgroundColor: ['#e85d3a', '#10b981', '#f59e0b'],
+        borderRadius: 10,
+        borderSkipped: false,
+        maxBarThickness: 56,
       },
     ],
+  }
+
+  const barOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1e293b',
+        titleFont: { family: 'Poppins', weight: '600', size: 12 },
+        bodyFont: { family: 'Poppins', size: 12 },
+        padding: 10,
+        cornerRadius: 8,
+        displayColors: false,
+        callbacks: {
+          label: (ctx) => `UGX ${Number(ctx.raw).toLocaleString()}`,
+        },
+      },
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        border: { display: false },
+        ticks: {
+          font: { family: 'Poppins', size: 12, weight: '500' },
+          color: '#64748b',
+        },
+      },
+      y: {
+        beginAtZero: true,
+        grid: { color: 'rgba(148, 163, 184, 0.15)' },
+        border: { display: false },
+        ticks: {
+          font: { family: 'Poppins', size: 11 },
+          color: '#94a3b8',
+          callback: (value) =>
+            value >= 1000000
+              ? `${value / 1000000}M`
+              : value >= 1000
+              ? `${value / 1000}K`
+              : value,
+        },
+      },
+    },
   }
 
   const doughnutData = {
@@ -82,42 +149,41 @@ const Dashboard = () => {
     datasets: [
       {
         data: [data.totalCollected, data.balance],
-        backgroundColor: ['#10b981', '#e85d3a'],
-        borderWidth: 0,
+        backgroundColor: ['#34d399', '#f0894f'],
+        hoverBackgroundColor: ['#10b981', '#e85d3a'],
+        borderWidth: 4,
+        borderColor: '#ffffff',
+        hoverOffset: 6,
       },
     ],
   }
 
-  const chartOptions = {
-    responsive: true,
+  const doughnutOptions = {
     maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: { y: { beginAtZero: true } },
+    cutout: '72%',
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          usePointStyle: true,
+          pointStyle: 'circle',
+          padding: 20,
+          font: { family: 'Poppins', size: 12, weight: '500' },
+          color: '#475569',
+        },
+      },
+      tooltip: {
+        backgroundColor: '#1e293b',
+        titleFont: { family: 'Poppins', weight: '600', size: 12 },
+        bodyFont: { family: 'Poppins', size: 12 },
+        padding: 10,
+        cornerRadius: 8,
+        callbacks: {
+          label: (ctx) => `UGX ${Number(ctx.raw).toLocaleString()}`,
+        },
+      },
+    },
   }
-
-  const secondaryStats = [
-    {
-      icon: TrendingUp,
-      label: 'Collection Rate',
-      value: `${data.collectionRate}%`,
-      gradient: 'from-primary-400 to-primary-600',
-      glow: 'shadow-primary-500/30',
-    },
-    {
-      icon: DollarSign,
-      label: 'Outstanding Balance',
-      value: `UGX ${Number(data.balance).toLocaleString()}`,
-      gradient: 'from-amber-400 to-amber-600',
-      glow: 'shadow-amber-500/30',
-    },
-    {
-      icon: Wallet,
-      label: 'Total Collections',
-      value: data.totalCollections,
-      gradient: 'from-emerald-400 to-emerald-600',
-      glow: 'shadow-emerald-500/30',
-    },
-  ]
 
   return (
     <div>
@@ -154,48 +220,31 @@ const Dashboard = () => {
         />
       </div>
 
-      {/* Secondary Stats */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        {secondaryStats.map((stat) => (
-          <div
-            key={stat.label}
-            className="glass-card !p-5 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
-          >
-            <div className="flex items-center gap-3">
-              <div
-                className={`w-12 h-12 shrink-0 rounded-2xl bg-gradient-to-br ${stat.gradient} shadow-lg ${stat.glow} flex items-center justify-center`}
-              >
-                <stat.icon className="w-6 h-6 text-white" strokeWidth={2.5} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm text-secondary-500">{stat.label}</p>
-                <p className="text-xl font-bold text-secondary-800 truncate">
-                  {stat.value}
-                </p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <div className="glass-card">
-          <h3 className="font-semibold text-secondary-800 mb-4">
-            Pledges Overview
-          </h3>
-          <div className="h-64">
-            <Bar data={barData} options={chartOptions} />
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="font-semibold text-secondary-800">
+              Pledges Overview
+            </h3>
+            <span className="text-xs text-secondary-400">This period</span>
+          </div>
+          <div className="h-72 pt-3">
+            <Bar data={barData} options={barOptions} />
           </div>
         </div>
         <div className="glass-card">
-          <h3 className="font-semibold text-secondary-800 mb-4">
-            Collection Progress
-          </h3>
-          <div className="h-64 flex items-center justify-center">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="font-semibold text-secondary-800">
+              Collection Progress
+            </h3>
+            <span className="text-xs text-secondary-400">This period</span>
+          </div>
+          <div className="h-72 pt-3">
             <Doughnut
               data={doughnutData}
-              options={{ maintainAspectRatio: false }}
+              options={doughnutOptions}
+              plugins={[centerTextPlugin]}
             />
           </div>
         </div>

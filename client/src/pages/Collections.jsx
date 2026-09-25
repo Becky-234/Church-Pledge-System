@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Trash2, Wallet } from 'lucide-react'
+import { Plus, Trash2, Wallet, TrendingUp, DollarSign } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { format } from 'date-fns'
 import PageHeader from '../components/common/PageHeader'
@@ -9,6 +9,7 @@ import EmptyState from '../components/common/EmptyState'
 import Loader from '../components/common/Loader'
 import collectionService from '../services/collectionService'
 import pledgeService from '../services/pledgeService'
+import reportService from '../services/reportService'
 import toast from 'react-hot-toast'
 import { usePermissions } from '../hooks/usePermissions'
 
@@ -16,6 +17,7 @@ const Collections = () => {
   const { canManageCollections } = usePermissions()
   const [collections, setCollections] = useState([])
   const [pledges, setPledges] = useState([])
+  const [summary, setSummary] = useState(null)
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
   const [deleteId, setDeleteId] = useState(null)
@@ -29,12 +31,14 @@ const Collections = () => {
 
   const fetchData = async () => {
     try {
-      const [cRes, pRes] = await Promise.all([
+      const [cRes, pRes, sRes] = await Promise.all([
         collectionService.getAll(),
         pledgeService.getAll(),
+        reportService.getDashboard(),
       ])
       setCollections(cRes.data)
       setPledges(pRes.data.filter((p) => p.status !== 'completed'))
+      setSummary(sRes.data)
     } catch {
       toast.error('Failed to load collections')
     } finally {
@@ -46,13 +50,15 @@ const Collections = () => {
     let isMounted = true
     const load = async () => {
       try {
-        const [cRes, pRes] = await Promise.all([
+        const [cRes, pRes, sRes] = await Promise.all([
           collectionService.getAll(),
           pledgeService.getAll(),
+          reportService.getDashboard(),
         ])
         if (isMounted) {
           setCollections(cRes.data)
           setPledges(pRes.data.filter((p) => p.status !== 'completed'))
+          setSummary(sRes.data)
         }
       } catch {
         toast.error('Failed to load collections')
@@ -101,6 +107,32 @@ const Collections = () => {
     }
   }
 
+  const secondaryStats = summary
+    ? [
+        {
+          icon: TrendingUp,
+          label: 'Collection Rate',
+          value: `${summary.collectionRate}%`,
+          gradient: 'from-primary-400 to-primary-600',
+          glow: 'shadow-primary-500/30',
+        },
+        {
+          icon: DollarSign,
+          label: 'Outstanding Balance',
+          value: `UGX ${Number(summary.balance).toLocaleString()}`,
+          gradient: 'from-amber-400 to-amber-600',
+          glow: 'shadow-amber-500/30',
+        },
+        {
+          icon: Wallet,
+          label: 'Total Collections',
+          value: summary.totalCollections,
+          gradient: 'from-emerald-400 to-emerald-600',
+          glow: 'shadow-emerald-500/30',
+        },
+      ]
+    : []
+
   return (
     <div>
       <PageHeader
@@ -115,6 +147,32 @@ const Collections = () => {
           )
         }
       />
+
+      {/* Secondary Stats — moved from Dashboard */}
+      {summary && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+          {secondaryStats.map((stat) => (
+            <div
+              key={stat.label}
+              className="glass-card !p-5 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-12 h-12 shrink-0 rounded-2xl bg-gradient-to-br ${stat.gradient} shadow-lg ${stat.glow} flex items-center justify-center`}
+                >
+                  <stat.icon className="w-6 h-6 text-white" strokeWidth={2.5} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm text-secondary-500">{stat.label}</p>
+                  <p className="text-xl font-bold text-secondary-800 truncate">
+                    {stat.value}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="glass-card !p-0 overflow-hidden">
         {loading ? (
