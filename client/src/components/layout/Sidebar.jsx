@@ -9,21 +9,30 @@ import {
   Bell,
   Church,
 } from 'lucide-react'
+import { usePermissions } from '../../hooks/usePermissions'
 
 const Sidebar = ({ isOpen, onClose }) => {
+  const {
+    canViewMembers,
+    canViewCampaigns,
+    canViewPledges,
+    canViewCollections,
+    canViewReports,
+    canViewNotifications,
+  } = usePermissions()
+
   const navItems = [
-    { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
-    { to: '/members', icon: Users, label: 'Members' },
-    { to: '/campaigns', icon: Megaphone, label: 'Campaigns' },
-    { to: '/pledges', icon: HandCoins, label: 'Pledges' },
-    { to: '/collections', icon: Wallet, label: 'Collections' },
-    { to: '/reports', icon: BarChart3, label: 'Reports' },
-    { to: '/notifications', icon: Bell, label: 'Notifications' },
-  ]
+    { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true, show: true },
+    { to: '/members', icon: Users, label: 'Members', show: canViewMembers },
+    { to: '/campaigns', icon: Megaphone, label: 'Campaigns', show: canViewCampaigns },
+    { to: '/pledges', icon: HandCoins, label: 'Pledges', show: canViewPledges },
+    { to: '/collections', icon: Wallet, label: 'Collections', show: canViewCollections },
+    { to: '/reports', icon: BarChart3, label: 'Reports', show: canViewReports },
+    { to: '/notifications', icon: Bell, label: 'Notifications', show: canViewNotifications },
+  ].filter((item) => item.show)
 
   return (
     <>
-      {/* Mobile overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -36,7 +45,6 @@ const Sidebar = ({ isOpen, onClose }) => {
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
-        {/* Logo */}
         <div className="flex items-center gap-3 h-16 px-6 border-b border-secondary-100">
           <div className="p-2 bg-primary-500 rounded-lg">
             <Church className="w-5 h-5 text-white" />
@@ -47,7 +55,6 @@ const Sidebar = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* Nav items */}
         <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100%-4rem)]">
           {navItems.map((item) => (
             <NavLink

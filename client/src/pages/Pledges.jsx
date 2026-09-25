@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Edit2, Trash2, HandCoins, Search } from 'lucide-react'
+import { Plus, Edit2, Trash2, HandCoins } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { format } from 'date-fns'
 import PageHeader from '../components/common/PageHeader'
@@ -11,8 +11,10 @@ import pledgeService from '../services/pledgeService'
 import memberService from '../services/memberService'
 import campaignService from '../services/campaignService'
 import toast from 'react-hot-toast'
+import { usePermissions } from '../hooks/usePermissions'
 
 const Pledges = () => {
+  const { canManagePledges } = usePermissions()
   const [pledges, setPledges] = useState([])
   const [members, setMembers] = useState([])
   const [campaigns, setCampaigns] = useState([])
@@ -40,7 +42,7 @@ const Pledges = () => {
       setPledges(pRes.data)
       setMembers(mRes.data)
       setCampaigns(cRes.data)
-    } catch (error) {
+    } catch {
       toast.error('Failed to load pledges')
     } finally {
       setLoading(false)
@@ -48,10 +50,35 @@ const Pledges = () => {
   }
 
   useEffect(() => {
-    fetchData()
+    let isMounted = true
+    const load = async () => {
+      try {
+        setLoading(true)
+        const params = filterStatus ? { status: filterStatus } : {}
+        const [pRes, mRes, cRes] = await Promise.all([
+          pledgeService.getAll(params),
+          memberService.getAll(),
+          campaignService.getAll(),
+        ])
+        if (isMounted) {
+          setPledges(pRes.data)
+          setMembers(mRes.data)
+          setCampaigns(cRes.data)
+        }
+      } catch {
+        toast.error('Failed to load pledges')
+      } finally {
+        if (isMounted) setLoading(false)
+      }
+    }
+    load()
+    return () => {
+      isMounted = false
+    }
   }, [filterStatus])
 
   const openCreate = () => {
+    if (!canManagePledges) return
     setEditing(null)
     reset({
       member: '',
@@ -64,6 +91,7 @@ const Pledges = () => {
   }
 
   const openEdit = (pledge) => {
+    if (!canManagePledges) return
     setEditing(pledge)
     reset({
       ...pledge,
@@ -100,7 +128,7 @@ const Pledges = () => {
       toast.success('Pledge deleted')
       setDeleteId(null)
       fetchData()
-    } catch (error) {
+    } catch {
       toast.error('Delete failed')
     }
   }
@@ -121,10 +149,12 @@ const Pledges = () => {
         title="Pledges"
         description="Track member pledge commitments"
         action={
-          <button onClick={openCreate} className="btn btn-primary">
-            <Plus className="w-4 h-4" />
-            New Pledge
-          </button>
+          canManagePledges && (
+            <button onClick={openCreate} className="btn btn-primary">
+              <Plus className="w-4 h-4" />
+              New Pledge
+            </button>
+          )
         }
       />
 
@@ -150,12 +180,18 @@ const Pledges = () => {
           <EmptyState
             icon={HandCoins}
             title="No pledges yet"
-            description="Assign pledges to members to start tracking."
+            description={
+              canManagePledges
+                ? 'Assign pledges to members to start tracking.'
+                : 'No pledges have been assigned yet.'
+            }
             action={
-              <button onClick={openCreate} className="btn btn-primary mt-2">
-                <Plus className="w-4 h-4" />
-                Create Pledge
-              </button>
+              canManagePledges && (
+                <button onClick={openCreate} className="btn btn-primary mt-2">
+                  <Plus className="w-4 h-4" />
+                  Create Pledge
+                </button>
+              )
             }
           />
         ) : (
@@ -163,19 +199,40 @@ const Pledges = () => {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-secondary-100">
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-secondary-500 uppercase">Member</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-secondary-500 uppercase">Campaign</th>
-                  <th className="text-right py-3 px-4 text-xs font-semibold text-secondary-500 uppercase">Amount</th>
-                  <th className="text-right py-3 px-4 text-xs font-semibold text-secondary-500 uppercase">Paid</th>
-                  <th className="text-right py-3 px-4 text-xs font-semibold text-secondary-500 uppercase">Balance</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-secondary-500 uppercase">Due</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-secondary-500 uppercase">Status</th>
-                  <th className="text-right py-3 px-4 text-xs font-semibold text-secondary-500 uppercase">Actions</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-secondary-500 uppercase">
+                    Member
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-secondary-500 uppercase">
+                    Campaign
+                  </th>
+                  <th className="text-right py-3 px-4 text-xs font-semibold text-secondary-500 uppercase">
+                    Amount
+                  </th>
+                  <th className="text-right py-3 px-4 text-xs font-semibold text-secondary-500 uppercase">
+                    Paid
+                  </th>
+                  <th className="text-right py-3 px-4 text-xs font-semibold text-secondary-500 uppercase">
+                    Balance
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-secondary-500 uppercase">
+                    Due
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-secondary-500 uppercase">
+                    Status
+                  </th>
+                  {canManagePledges && (
+                    <th className="text-right py-3 px-4 text-xs font-semibold text-secondary-500 uppercase">
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody>
                 {pledges.map((p) => (
-                  <tr key={p._id} className="border-b border-secondary-50 hover:bg-secondary-50">
+                  <tr
+                    key={p._id}
+                    className="border-b border-secondary-50 hover:bg-secondary-50"
+                  >
                     <td className="py-3 px-4 text-sm font-medium text-secondary-800">
                       {p.member?.name || 'N/A'}
                     </td>
@@ -199,16 +256,26 @@ const Pledges = () => {
                         {p.status}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg hover:bg-secondary-100">
-                          <Edit2 className="w-4 h-4 text-secondary-500" />
-                        </button>
-                        <button onClick={() => setDeleteId(p._id)} className="p-1.5 rounded-lg hover:bg-red-50">
-                          <Trash2 className="w-4 h-4 text-red-500" />
-                        </button>
-                      </div>
-                    </td>
+                    {canManagePledges && (
+                      <td className="py-3 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => openEdit(p)}
+                            className="p-1.5 rounded-lg hover:bg-secondary-100"
+                            title="Edit"
+                          >
+                            <Edit2 className="w-4 h-4 text-secondary-500" />
+                          </button>
+                          <button
+                            onClick={() => setDeleteId(p._id)}
+                            className="p-1.5 rounded-lg hover:bg-red-50"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -217,106 +284,116 @@ const Pledges = () => {
         )}
       </div>
 
-      {/* Modal */}
-      <Modal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title={editing ? 'Edit Pledge' : 'New Pledge'}
-        size="lg"
-      >
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="label">Member *</label>
-              <select
-                className="input"
-                {...register('member', { required: 'Member is required' })}
-              >
-                <option value="">Select member</option>
-                {members.map((m) => (
-                  <option key={m._id} value={m._id}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
-              {errors.member && (
-                <p className="text-xs text-red-500 mt-1">{errors.member.message}</p>
-              )}
+      {/* Modal — only for admins/treasurers */}
+      {canManagePledges && (
+        <Modal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          title={editing ? 'Edit Pledge' : 'New Pledge'}
+          size="lg"
+        >
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="label">Member *</label>
+                <select
+                  className="input"
+                  {...register('member', { required: 'Member is required' })}
+                >
+                  <option value="">Select member</option>
+                  {members.map((m) => (
+                    <option key={m._id} value={m._id}>
+                      {m.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.member && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.member.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="label">Campaign *</label>
+                <select
+                  className="input"
+                  {...register('campaign', { required: 'Campaign is required' })}
+                >
+                  <option value="">Select campaign</option>
+                  {campaigns.map((c) => (
+                    <option key={c._id} value={c._id}>
+                      {c.title}
+                    </option>
+                  ))}
+                </select>
+                {errors.campaign && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.campaign.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="label">Amount (UGX) *</label>
+                <input
+                  type="number"
+                  className="input"
+                  placeholder="100000"
+                  {...register('amount', {
+                    required: 'Amount is required',
+                    min: { value: 1, message: 'Must be > 0' },
+                  })}
+                />
+                {errors.amount && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.amount.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="label">Due Date *</label>
+                <input
+                  type="date"
+                  className="input"
+                  {...register('dueDate', { required: 'Due date is required' })}
+                />
+                {errors.dueDate && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.dueDate.message}
+                  </p>
+                )}
+              </div>
             </div>
 
             <div>
-              <label className="label">Campaign *</label>
-              <select
+              <label className="label">Description</label>
+              <textarea
+                rows="3"
                 className="input"
-                {...register('campaign', { required: 'Campaign is required' })}
-              >
-                <option value="">Select campaign</option>
-                {campaigns.map((c) => (
-                  <option key={c._id} value={c._id}>
-                    {c.title}
-                  </option>
-                ))}
-              </select>
-              {errors.campaign && (
-                <p className="text-xs text-red-500 mt-1">{errors.campaign.message}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="label">Amount (UGX) *</label>
-              <input
-                type="number"
-                className="input"
-                placeholder="100000"
-                {...register('amount', {
-                  required: 'Amount is required',
-                  min: { value: 1, message: 'Must be > 0' },
-                })}
+                placeholder="Additional notes..."
+                {...register('description')}
               />
-              {errors.amount && (
-                <p className="text-xs text-red-500 mt-1">{errors.amount.message}</p>
-              )}
             </div>
 
-            <div>
-              <label className="label">Due Date *</label>
-              <input
-                type="date"
-                className="input"
-                {...register('dueDate', { required: 'Due date is required' })}
-              />
-              {errors.dueDate && (
-                <p className="text-xs text-red-500 mt-1">{errors.dueDate.message}</p>
-              )}
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="btn btn-secondary"
+              >
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-primary">
+                {editing ? 'Update' : 'Create'}
+              </button>
             </div>
-          </div>
-
-          <div>
-            <label className="label">Description</label>
-            <textarea
-              rows="3"
-              className="input"
-              placeholder="Additional notes..."
-              {...register('description')}
-            />
-          </div>
-
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={() => setModalOpen(false)}
-              className="btn btn-secondary"
-            >
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary">
-              {editing ? 'Update' : 'Create'}
-            </button>
-          </div>
-        </form>
-      </Modal>
+          </form>
+        </Modal>
+      )}
 
       <ConfirmDialog
         isOpen={!!deleteId}

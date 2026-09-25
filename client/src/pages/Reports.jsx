@@ -1,10 +1,13 @@
 import { useState } from 'react'
-import { FileSpreadsheet, FileText, Download } from 'lucide-react'
+import { FileSpreadsheet, FileText, Download, ShieldAlert } from 'lucide-react'
 import PageHeader from '../components/common/PageHeader'
+import EmptyState from '../components/common/EmptyState'
 import reportService from '../services/reportService'
 import toast from 'react-hot-toast'
+import { usePermissions } from '../hooks/usePermissions'
 
 const Reports = () => {
+  const { canExportReports } = usePermissions()
   const [loadingExcel, setLoadingExcel] = useState(false)
   const [loadingPDF, setLoadingPDF] = useState(false)
 
@@ -26,7 +29,7 @@ const Reports = () => {
       const response = await reportService.exportExcel()
       downloadFile(response, `church-report-${Date.now()}.xlsx`)
       toast.success('Excel report downloaded')
-    } catch (error) {
+    } catch {
       toast.error('Failed to generate Excel')
     } finally {
       setLoadingExcel(false)
@@ -39,11 +42,30 @@ const Reports = () => {
       const response = await reportService.exportPDF()
       downloadFile(response, `church-report-${Date.now()}.pdf`)
       toast.success('PDF report downloaded')
-    } catch (error) {
+    } catch {
       toast.error('Failed to generate PDF')
     } finally {
       setLoadingPDF(false)
     }
+  }
+
+  // Block members from this page
+  if (!canExportReports) {
+    return (
+      <div>
+        <PageHeader
+          title="Reports & Exports"
+          description="Download comprehensive reports"
+        />
+        <div className="card">
+          <EmptyState
+            icon={ShieldAlert}
+            title="Access Denied"
+            description="Your role does not have permission to view or export reports. Please contact an administrator."
+          />
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -111,8 +133,14 @@ const Reports = () => {
       <div className="card mt-6 bg-blue-50 border-blue-100">
         <h3 className="font-semibold text-blue-900 mb-2">Report Contents</h3>
         <ul className="text-sm text-blue-800 space-y-1 list-disc pl-5">
-          <li><strong>Excel:</strong> Member details, pledge statuses, collection history, and payment methods</li>
-          <li><strong>PDF:</strong> Executive summary, total pledged, total collected, balance, and member overview</li>
+          <li>
+            <strong>Excel:</strong> Member details, pledge statuses, collection
+            history, and payment methods
+          </li>
+          <li>
+            <strong>PDF:</strong> Executive summary, total pledged, total
+            collected, balance, and member overview
+          </li>
         </ul>
       </div>
     </div>

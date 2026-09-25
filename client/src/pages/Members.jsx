@@ -8,8 +8,10 @@ import EmptyState from '../components/common/EmptyState'
 import Loader from '../components/common/Loader'
 import memberService from '../services/memberService'
 import toast from 'react-hot-toast'
+import { usePermissions } from '../hooks/usePermissions'
 
 const Members = () => {
+  const { canManageMembers } = usePermissions()
   const [members, setMembers] = useState([])
   const [groups, setGroups] = useState([])
   const [loading, setLoading] = useState(true)
@@ -38,7 +40,7 @@ const Members = () => {
       ])
       setMembers(membersRes.data)
       setGroups(groupsRes.data)
-    } catch (error) {
+    } catch {
       toast.error('Failed to load members')
     } finally {
       setLoading(false)
@@ -46,16 +48,43 @@ const Members = () => {
   }
 
   useEffect(() => {
-    fetchData()
+    let isMounted = true
+    const load = async () => {
+      try {
+        setLoading(true)
+        const params = {}
+        if (search) params.search = search
+        if (filterGroup) params.group = filterGroup
+
+        const [membersRes, groupsRes] = await Promise.all([
+          memberService.getAll(params),
+          memberService.getGroups(),
+        ])
+        if (isMounted) {
+          setMembers(membersRes.data)
+          setGroups(groupsRes.data)
+        }
+      } catch {
+        toast.error('Failed to load members')
+      } finally {
+        if (isMounted) setLoading(false)
+      }
+    }
+    load()
+    return () => {
+      isMounted = false
+    }
   }, [search, filterGroup])
 
   const openCreate = () => {
+    if (!canManageMembers) return
     setEditing(null)
     reset({ name: '', phone: '', email: '', group: '', address: '' })
     setModalOpen(true)
   }
 
   const openEdit = (member) => {
+    if (!canManageMembers) return
     setEditing(member)
     reset(member)
     setModalOpen(true)
@@ -83,7 +112,7 @@ const Members = () => {
       toast.success('Member deleted')
       setDeleteId(null)
       fetchData()
-    } catch (error) {
+    } catch {
       toast.error('Delete failed')
     }
   }
@@ -94,10 +123,12 @@ const Members = () => {
         title="Members"
         description="Manage church members and their groups"
         action={
-          <button onClick={openCreate} className="btn btn-primary">
-            <Plus className="w-4 h-4" />
-            Add Member
-          </button>
+          canManageMembers && (
+            <button onClick={openCreate} className="btn btn-primary">
+              <Plus className="w-4 h-4" />
+              Add Member
+            </button>
+          )
         }
       />
 
@@ -137,12 +168,18 @@ const Members = () => {
           <EmptyState
             icon={Users}
             title="No members yet"
-            description="Add your first member to get started."
+            description={
+              canManageMembers
+                ? 'Add your first member to get started.'
+                : 'No members have been added yet.'
+            }
             action={
-              <button onClick={openCreate} className="btn btn-primary mt-2">
-                <Plus className="w-4 h-4" />
-                Add Member
-              </button>
+              canManageMembers && (
+                <button onClick={openCreate} className="btn btn-primary mt-2">
+                  <Plus className="w-4 h-4" />
+                  Add Member
+                </button>
+              )
             }
           />
         ) : (
@@ -168,9 +205,11 @@ const Members = () => {
                   <th className="text-right py-3 px-4 text-xs font-semibold text-secondary-500 uppercase">
                     Balance
                   </th>
-                  <th className="text-right py-3 px-4 text-xs font-semibold text-secondary-500 uppercase">
-                    Actions
-                  </th>
+                  {canManageMembers && (
+                    <th className="text-right py-3 px-4 text-xs font-semibold text-secondary-500 uppercase">
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -209,22 +248,26 @@ const Members = () => {
                     <td className="py-3 px-4 text-sm text-right font-medium text-amber-600">
                       {Number(member.balance || 0).toLocaleString()}
                     </td>
-                    <td className="py-3 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => openEdit(member)}
-                          className="p-1.5 rounded-lg hover:bg-secondary-100 transition"
-                        >
-                          <Edit2 className="w-4 h-4 text-secondary-500" />
-                        </button>
-                        <button
-                          onClick={() => setDeleteId(member._id)}
-                          className="p-1.5 rounded-lg hover:bg-red-50 transition"
-                        >
-                          <Trash2 className="w-4 h-4 text-red-500" />
-                        </button>
-                      </div>
-                    </td>
+                    {canManageMembers && (
+                      <td className="py-3 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => openEdit(member)}
+                            className="p-1.5 rounded-lg hover:bg-secondary-100 transition"
+                            title="Edit"
+                          >
+                            <Edit2 className="w-4 h-4 text-secondary-500" />
+                          </button>
+                          <button
+                            onClick={() => setDeleteId(member._id)}
+                            className="p-1.5 rounded-lg hover:bg-red-50 transition"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -233,86 +276,94 @@ const Members = () => {
         )}
       </div>
 
-      {/* Create/Edit Modal */}
-      <Modal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title={editing ? 'Edit Member' : 'Add Member'}
-      >
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <label className="label">Full Name *</label>
-            <input
-              type="text"
-              className="input"
-              placeholder="John Doe"
-              {...register('name', { required: 'Name is required' })}
-            />
-            {errors.name && (
-              <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>
-            )}
-          </div>
+      {/* Create/Edit Modal — only for admins */}
+      {canManageMembers && (
+        <Modal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          title={editing ? 'Edit Member' : 'Add Member'}
+        >
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div>
+              <label className="label">Full Name *</label>
+              <input
+                type="text"
+                className="input"
+                placeholder="John Doe"
+                {...register('name', { required: 'Name is required' })}
+              />
+              {errors.name && (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.name.message}
+                </p>
+              )}
+            </div>
 
-          <div>
-            <label className="label">Phone *</label>
-            <input
-              type="tel"
-              className="input"
-              placeholder="+256 700 000 000"
-              {...register('phone', { required: 'Phone is required' })}
-            />
-            {errors.phone && (
-              <p className="text-xs text-red-500 mt-1">{errors.phone.message}</p>
-            )}
-          </div>
+            <div>
+              <label className="label">Phone *</label>
+              <input
+                type="tel"
+                className="input"
+                placeholder="+256 700 000 000"
+                {...register('phone', { required: 'Phone is required' })}
+              />
+              {errors.phone && (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.phone.message}
+                </p>
+              )}
+            </div>
 
-          <div>
-            <label className="label">Email</label>
-            <input
-              type="email"
-              className="input"
-              placeholder="john@example.com"
-              {...register('email')}
-            />
-          </div>
+            <div>
+              <label className="label">Email</label>
+              <input
+                type="email"
+                className="input"
+                placeholder="john@example.com"
+                {...register('email')}
+              />
+            </div>
 
-          <div>
-            <label className="label">Group *</label>
-            <input
-              type="text"
-              className="input"
-              placeholder="Youth Fellowship"
-              {...register('group', { required: 'Group is required' })}
-            />
-            {errors.group && (
-              <p className="text-xs text-red-500 mt-1">{errors.group.message}</p>
-            )}
-          </div>
+            <div>
+              <label className="label">Group *</label>
+              <input
+                type="text"
+                className="input"
+                placeholder="Youth Fellowship"
+                {...register('group', { required: 'Group is required' })}
+              />
+              {errors.group && (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.group.message}
+                </p>
+              )}
+            </div>
 
-          <div>
-            <label className="label">Address</label>
-            <input
-              type="text"
-              className="input"
-              placeholder="123 Main Street"
-              {...register('address')}
-            />
-          </div>
+            <div>
+              <label className="label">Address</label>
+              <input
+                type="text"
+                className="input"
+                placeholder="123 Main Street"
+                {...register('address')}
+              />
+            </div>
 
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={() => setModalOpen(false)}
-              className="btn btn-secondary"
-            >
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary">
-              {editing ? 'Update' : 'Create'}
-            </button>
-          </div>
-        </form>
-      </Modal>
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="btn btn-secondary"
+              >
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-primary">
+                {editing ? 'Update' : 'Create'}
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
 
       {/* Delete Confirmation */}
       <ConfirmDialog

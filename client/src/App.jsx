@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import Layout from './components/layout/Layout'
 import ProtectedRoute from './components/common/ProtectedRoute'
+import RoleRoute from './components/common/RoleRoute'
 
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -30,12 +31,60 @@ function App() {
         }
       >
         <Route index element={<Dashboard />} />
-        <Route path="members" element={<Members />} />
-        <Route path="campaigns" element={<Campaigns />} />
-        <Route path="pledges" element={<Pledges />} />
-        <Route path="collections" element={<Collections />} />
-        <Route path="reports" element={<Reports />} />
-        <Route path="notifications" element={<Notifications />} />
+
+        <Route
+          path="members"
+          element={
+            <RoleRoute permission="canViewMembers">
+              <Members />
+            </RoleRoute>
+          }
+        />
+
+        <Route
+          path="campaigns"
+          element={
+            <RoleRoute permission="canViewCampaigns">
+              <Campaigns />
+            </RoleRoute>
+          }
+        />
+
+        <Route
+          path="pledges"
+          element={
+            <RoleRoute permission="canViewPledges">
+              <Pledges />
+            </RoleRoute>
+          }
+        />
+
+        <Route
+          path="collections"
+          element={
+            <RoleRoute permission="canViewCollections">
+              <Collections />
+            </RoleRoute>
+          }
+        />
+
+        <Route
+          path="reports"
+          element={
+            <RoleRoute permission="canViewReports">
+              <Reports />
+            </RoleRoute>
+          }
+        />
+
+        <Route
+          path="notifications"
+          element={
+            <RoleRoute permission="canViewNotifications">
+              <Notifications />
+            </RoleRoute>
+          }
+        />
       </Route>
 
       <Route path="*" element={<Navigate to="/" />} />

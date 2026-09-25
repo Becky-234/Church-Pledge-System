@@ -25,6 +25,7 @@ import RecentActivity from '../components/dashboard/RecentActivity'
 import OverdueList from '../components/dashboard/OverdueList'
 import reportService from '../services/reportService'
 import toast from 'react-hot-toast'
+import { useAuth } from '../hooks/useAuth'
 
 ChartJS.register(
   CategoryScale,
@@ -37,21 +38,28 @@ ChartJS.register(
 )
 
 const Dashboard = () => {
+  const { user } = useAuth()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let isMounted = true
+
     const fetchDashboard = async () => {
       try {
         const response = await reportService.getDashboard()
-        setData(response.data)
-      } catch (error) {
+        if (isMounted) setData(response.data)
+      } catch {
         toast.error('Failed to load dashboard')
       } finally {
-        setLoading(false)
+        if (isMounted) setLoading(false)
       }
     }
+
     fetchDashboard()
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   if (loading) return <Loader fullScreen />
@@ -90,7 +98,7 @@ const Dashboard = () => {
   return (
     <div>
       <PageHeader
-        title="Dashboard"
+        title={`Welcome back, ${user?.name?.split(' ')[0] || 'User'}!`}
         description="Overview of all pledges, collections, and members"
       />
 
@@ -180,7 +188,10 @@ const Dashboard = () => {
             Collection Progress
           </h3>
           <div className="h-64 flex items-center justify-center">
-            <Doughnut data={doughnutData} options={{ maintainAspectRatio: false }} />
+            <Doughnut
+              data={doughnutData}
+              options={{ maintainAspectRatio: false }}
+            />
           </div>
         </div>
       </div>

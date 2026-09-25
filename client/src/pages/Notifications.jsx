@@ -9,8 +9,10 @@ import Loader from '../components/common/Loader'
 import notificationService from '../services/notificationService'
 import memberService from '../services/memberService'
 import toast from 'react-hot-toast'
+import { usePermissions } from '../hooks/usePermissions'
 
 const Notifications = () => {
+  const { canSendNotifications } = usePermissions()
   const [notifications, setNotifications] = useState([])
   const [members, setMembers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -32,7 +34,7 @@ const Notifications = () => {
       ])
       setNotifications(nRes.data)
       setMembers(mRes.data)
-    } catch (error) {
+    } catch {
       toast.error('Failed to load notifications')
     } finally {
       setLoading(false)
@@ -40,10 +42,31 @@ const Notifications = () => {
   }
 
   useEffect(() => {
-    fetchData()
+    let isMounted = true
+    const load = async () => {
+      try {
+        const [nRes, mRes] = await Promise.all([
+          notificationService.getAll(),
+          memberService.getAll(),
+        ])
+        if (isMounted) {
+          setNotifications(nRes.data)
+          setMembers(mRes.data)
+        }
+      } catch {
+        toast.error('Failed to load notifications')
+      } finally {
+        if (isMounted) setLoading(false)
+      }
+    }
+    load()
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   const openCreate = () => {
+    if (!canSendNotifications) return
     reset({
       recipient: '',
       type: 'announcement',
@@ -60,7 +83,7 @@ const Notifications = () => {
       toast.success('Notification sent')
       setModalOpen(false)
       fetchData()
-    } catch (error) {
+    } catch {
       toast.error('Failed to send')
     }
   }
@@ -71,7 +94,7 @@ const Notifications = () => {
       const res = await notificationService.sendReminders()
       toast.success(res.message || 'Reminders sent')
       fetchData()
-    } catch (error) {
+    } catch {
       toast.error('Failed to send reminders')
     } finally {
       setSending(false)
@@ -83,7 +106,7 @@ const Notifications = () => {
       await notificationService.delete(id)
       toast.success('Deleted')
       fetchData()
-    } catch (error) {
+    } catch {
       toast.error('Delete failed')
     }
   }
@@ -112,20 +135,22 @@ const Notifications = () => {
         title="Notifications"
         description="Send reminders and manage notifications"
         action={
-          <div className="flex gap-2">
-            <button
-              onClick={handleSendReminders}
-              disabled={sending}
-              className="btn btn-secondary"
-            >
-              <Send className="w-4 h-4" />
-              {sending ? 'Sending...' : 'Send Reminders'}
-            </button>
-            <button onClick={openCreate} className="btn btn-primary">
-              <Plus className="w-4 h-4" />
-              New Notification
-            </button>
-          </div>
+          canSendNotifications && (
+            <div className="flex gap-2">
+              <button
+                onClick={handleSendReminders}
+                disabled={sending}
+                className="btn btn-secondary"
+              >
+                <Send className="w-4 h-4" />
+                {sending ? 'Sending...' : 'Send Reminders'}
+              </button>
+              <button onClick={openCreate} className="btn btn-primary">
+                <Plus className="w-4 h-4" />
+                New Notification
+              </button>
+            </div>
+          )
         }
       />
 
@@ -136,7 +161,11 @@ const Notifications = () => {
           <EmptyState
             icon={Bell}
             title="No notifications yet"
-            description="Send reminders to members or create a custom notification."
+            description={
+              canSendNotifications
+                ? 'Send reminders to members or create a custom notification.'
+                : 'No notifications have been sent yet.'
+            }
           />
         ) : (
           <div className="space-y-3">
@@ -153,7 +182,9 @@ const Notifications = () => {
                     <p className="text-sm font-medium text-secondary-800">
                       {n.recipient?.name || 'Unknown'}
                     </p>
-                    <span className={`badge ${getTypeBadge(n.type)}`}>{n.type}</span>
+                    <span className={`badge ${getTypeBadge(n.type)}`}>
+                      {n.type}
+                    </span>
                     <span className={`badge ${getStatusBadge(n.status)}`}>
                       {n.status}
                     </span>
@@ -171,100 +202,117 @@ const Notifications = () => {
                     {format(new Date(n.createdAt), 'MMM dd, yyyy HH:mm')}
                   </p>
                 </div>
-                <button
-                  onClick={() => handleDelete(n._id)}
-                  className="p-1.5 rounded-lg hover:bg-red-50"
-                >
-                  <Trash2 className="w-4 h-4 text-red-500" />
-                </button>
+                {canSendNotifications && (
+                  <button
+                    onClick={() => handleDelete(n._id)}
+                    className="p-1.5 rounded-lg hover:bg-red-50"
+                    title="Delete"
+                  >
+                    <Trash2 className="w-4 h-4 text-red-500" />
+                  </button>
+                )}
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Create Modal */}
-      <Modal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title="Send Notification"
-      >
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <label className="label">Recipient *</label>
-            <select
-              className="input"
-              {...register('recipient', { required: 'Recipient is required' })}
-            >
-              <option value="">Select member</option>
-              {members.map((m) => (
-                <option key={m._id} value={m._id}>
-                  {m.name} — {m.phone}
-                </option>
-              ))}
-            </select>
-            {errors.recipient && (
-              <p className="text-xs text-red-500 mt-1">{errors.recipient.message}</p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
+      {/* Create Modal — only for admins/pastors/treasurers */}
+      {canSendNotifications && (
+        <Modal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          title="Send Notification"
+        >
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="label">Type *</label>
-              <select className="input" {...register('type', { required: true })}>
-                <option value="announcement">Announcement</option>
-                <option value="reminder">Reminder</option>
-                <option value="confirmation">Confirmation</option>
+              <label className="label">Recipient *</label>
+              <select
+                className="input"
+                {...register('recipient', {
+                  required: 'Recipient is required',
+                })}
+              >
+                <option value="">Select member</option>
+                {members.map((m) => (
+                  <option key={m._id} value={m._id}>
+                    {m.name} — {m.phone}
+                  </option>
+                ))}
               </select>
+              {errors.recipient && (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.recipient.message}
+                </p>
+              )}
             </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="label">Type *</label>
+                <select
+                  className="input"
+                  {...register('type', { required: true })}
+                >
+                  <option value="announcement">Announcement</option>
+                  <option value="reminder">Reminder</option>
+                  <option value="confirmation">Confirmation</option>
+                </select>
+              </div>
+              <div>
+                <label className="label">Channel *</label>
+                <select
+                  className="input"
+                  {...register('channel', { required: true })}
+                >
+                  <option value="in_app">In-App</option>
+                  <option value="sms">SMS</option>
+                  <option value="email">Email</option>
+                </select>
+              </div>
+            </div>
+
             <div>
-              <label className="label">Channel *</label>
-              <select className="input" {...register('channel', { required: true })}>
-                <option value="in_app">In-App</option>
-                <option value="sms">SMS</option>
-                <option value="email">Email</option>
-              </select>
+              <label className="label">Subject</label>
+              <input
+                type="text"
+                className="input"
+                placeholder="Optional subject"
+                {...register('subject')}
+              />
             </div>
-          </div>
 
-          <div>
-            <label className="label">Subject</label>
-            <input
-              type="text"
-              className="input"
-              placeholder="Optional subject"
-              {...register('subject')}
-            />
-          </div>
+            <div>
+              <label className="label">Message *</label>
+              <textarea
+                rows="4"
+                className="input"
+                placeholder="Type your message..."
+                {...register('message', { required: 'Message is required' })}
+              />
+              {errors.message && (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.message.message}
+                </p>
+              )}
+            </div>
 
-          <div>
-            <label className="label">Message *</label>
-            <textarea
-              rows="4"
-              className="input"
-              placeholder="Type your message..."
-              {...register('message', { required: 'Message is required' })}
-            />
-            {errors.message && (
-              <p className="text-xs text-red-500 mt-1">{errors.message.message}</p>
-            )}
-          </div>
-
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={() => setModalOpen(false)}
-              className="btn btn-secondary"
-            >
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary">
-              <Send className="w-4 h-4" />
-              Send
-            </button>
-          </div>
-        </form>
-      </Modal>
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="btn btn-secondary"
+              >
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-primary">
+                <Send className="w-4 h-4" />
+                Send
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
     </div>
   )
 }

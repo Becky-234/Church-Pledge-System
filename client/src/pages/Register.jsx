@@ -20,7 +20,13 @@ const Register = () => {
   const onSubmit = async (data) => {
     setLoading(true)
     try {
-      await registerUser(data)
+      const payload = {
+        name: data.name.trim(),
+        email: data.email.trim().toLowerCase(),
+        phone: data.phone?.trim() || '',
+        password: data.password,
+      }
+      await registerUser(payload)
       toast.success('Account created successfully!')
       navigate('/')
     } catch (error) {
@@ -38,7 +44,9 @@ const Register = () => {
             <Church className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-secondary-800">Create Account</h1>
-          <p className="text-sm text-secondary-500 mt-1">Join Church Pledge System</p>
+          <p className="text-sm text-secondary-500 mt-1">
+            Join Church Pledge System
+          </p>
         </div>
 
         <div className="card p-8">
@@ -55,7 +63,9 @@ const Register = () => {
                 />
               </div>
               {errors.name && (
-                <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.name.message}
+                </p>
               )}
             </div>
 
@@ -67,11 +77,16 @@ const Register = () => {
                   type="email"
                   placeholder="you@example.com"
                   className="input pl-10"
-                  {...register('email', { required: 'Email is required' })}
+                  {...register('email', {
+                    required: 'Email is required',
+                    setValueAs: (v) => v?.trim().toLowerCase() || '',
+                  })}
                 />
               </div>
               {errors.email && (
-                <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
@@ -110,11 +125,17 @@ const Register = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary-400 hover:text-secondary-600"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
               {errors.password && (
-                <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.password.message}
+                </p>
               )}
             </div>
 
@@ -130,7 +151,10 @@ const Register = () => {
           <div className="mt-6 text-center">
             <p className="text-sm text-secondary-500">
               Already have an account?{' '}
-              <Link to="/login" className="text-primary-500 font-medium hover:underline">
+              <Link
+                to="/login"
+                className="text-primary-500 font-medium hover:underline"
+              >
                 Sign In
               </Link>
             </p>

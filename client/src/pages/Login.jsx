@@ -20,7 +20,9 @@ const Login = () => {
   const onSubmit = async (data) => {
     setLoading(true)
     try {
-      await login(data.email, data.password)
+      // Trim email + lowercase (passwords NOT trimmed)
+      const email = data.email.trim().toLowerCase()
+      await login(email, data.password)
       toast.success('Welcome back!')
       navigate('/')
     } catch (error) {
@@ -44,7 +46,9 @@ const Login = () => {
 
         {/* Card */}
         <div className="card p-8">
-          <h2 className="text-xl font-bold text-secondary-800 mb-1">Welcome back</h2>
+          <h2 className="text-xl font-bold text-secondary-800 mb-1">
+            Welcome back
+          </h2>
           <p className="text-sm text-secondary-500 mb-6">
             Sign in to your account to continue
           </p>
@@ -58,11 +62,17 @@ const Login = () => {
                   type="email"
                   placeholder="admin@church.com"
                   className="input pl-10"
-                  {...register('email', { required: 'Email is required' })}
+                  autoComplete="email"
+                  {...register('email', {
+                    required: 'Email is required',
+                    setValueAs: (v) => v?.trim().toLowerCase() || '',
+                  })}
                 />
               </div>
               {errors.email && (
-                <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
@@ -74,6 +84,7 @@ const Login = () => {
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   className="input pl-10 pr-10"
+                  autoComplete="current-password"
                   {...register('password', { required: 'Password is required' })}
                 />
                 <button
@@ -81,11 +92,17 @@ const Login = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary-400 hover:text-secondary-600"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
               {errors.password && (
-                <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.password.message}
+                </p>
               )}
             </div>
 
@@ -101,7 +118,10 @@ const Login = () => {
           <div className="mt-6 text-center">
             <p className="text-sm text-secondary-500">
               Don't have an account?{' '}
-              <Link to="/register" className="text-primary-500 font-medium hover:underline">
+              <Link
+                to="/register"
+                className="text-primary-500 font-medium hover:underline"
+              >
                 Register
               </Link>
             </p>
@@ -116,7 +136,13 @@ const Login = () => {
               <strong>Admin:</strong> admin@church.com / Admin@123
             </p>
             <p className="text-xs text-secondary-500">
+              <strong>Pastor:</strong> pastor@church.com / Pastor@123
+            </p>
+            <p className="text-xs text-secondary-500">
               <strong>Treasurer:</strong> treasurer@church.com / Treasurer@123
+            </p>
+            <p className="text-xs text-secondary-500">
+              <strong>Member:</strong> member@church.com / Member@123
             </p>
           </div>
         </div>

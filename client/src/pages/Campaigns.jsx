@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Plus, Edit2, Trash2, Megaphone, Target } from 'lucide-react'
 import { useForm } from 'react-hook-form'
+import { format } from 'date-fns'
 import PageHeader from '../components/common/PageHeader'
 import Modal from '../components/common/Modal'
 import ConfirmDialog from '../components/common/ConfirmDialog'
@@ -8,9 +9,10 @@ import EmptyState from '../components/common/EmptyState'
 import Loader from '../components/common/Loader'
 import campaignService from '../services/campaignService'
 import toast from 'react-hot-toast'
-import { format } from 'date-fns'
+import { usePermissions } from '../hooks/usePermissions'
 
 const Campaigns = () => {
+  const { canManageCampaigns } = usePermissions()
   const [campaigns, setCampaigns] = useState([])
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
@@ -40,6 +42,7 @@ const Campaigns = () => {
   }, [])
 
   const openCreate = () => {
+    if (!canManageCampaigns) return
     setEditing(null)
     reset({
       title: '',
@@ -53,6 +56,7 @@ const Campaigns = () => {
   }
 
   const openEdit = (c) => {
+    if (!canManageCampaigns) return
     setEditing(c)
     reset({
       ...c,
@@ -104,10 +108,12 @@ const Campaigns = () => {
         title="Campaigns"
         description="Manage pledge campaigns and fundraising goals"
         action={
-          <button onClick={openCreate} className="btn btn-primary">
-            <Plus className="w-4 h-4" />
-            New Campaign
-          </button>
+          canManageCampaigns && (
+            <button onClick={openCreate} className="btn btn-primary">
+              <Plus className="w-4 h-4" />
+              New Campaign
+            </button>
+          )
         }
       />
 
@@ -118,12 +124,18 @@ const Campaigns = () => {
           <EmptyState
             icon={Megaphone}
             title="No campaigns yet"
-            description="Create your first pledge campaign to get started."
+            description={
+              canManageCampaigns
+                ? 'Create your first pledge campaign to get started.'
+                : 'No campaigns have been created yet.'
+            }
             action={
-              <button onClick={openCreate} className="btn btn-primary mt-2">
-                <Plus className="w-4 h-4" />
-                Create Campaign
-              </button>
+              canManageCampaigns && (
+                <button onClick={openCreate} className="btn btn-primary mt-2">
+                  <Plus className="w-4 h-4" />
+                  Create Campaign
+                </button>
+              )
             }
           />
         </div>
@@ -132,7 +144,10 @@ const Campaigns = () => {
           {campaigns.map((c) => {
             const progress =
               c.targetAmount > 0
-                ? Math.min(100, Math.round((c.totalCollected / c.targetAmount) * 100))
+                ? Math.min(
+                    100,
+                    Math.round((c.totalCollected / c.targetAmount) * 100)
+                  )
                 : 0
 
             return (
@@ -178,7 +193,9 @@ const Campaigns = () => {
                 <div className="mb-4">
                   <div className="flex justify-between text-xs mb-1">
                     <span className="text-secondary-500">Progress</span>
-                    <span className="font-medium text-secondary-700">{progress}%</span>
+                    <span className="font-medium text-secondary-700">
+                      {progress}%
+                    </span>
                   </div>
                   <div className="w-full bg-secondary-100 rounded-full h-2">
                     <div
@@ -190,22 +207,31 @@ const Campaigns = () => {
 
                 <div className="flex justify-between items-center pt-3 border-t border-secondary-100">
                   <span className="text-xs text-secondary-500">
-                    Ends {c.endDate ? format(new Date(c.endDate), 'MMM dd, yyyy') : 'N/A'}
+                    Ends{' '}
+                    {c.endDate
+                      ? format(new Date(c.endDate), 'MMM dd, yyyy')
+                      : 'N/A'}
                   </span>
-                  <div className="flex gap-1">
-                    <button
-                      onClick={() => openEdit(c)}
-                      className="p-1.5 rounded-lg hover:bg-secondary-100"
-                    >
-                      <Edit2 className="w-4 h-4 text-secondary-500" />
-                    </button>
-                    <button
-                      onClick={() => setDeleteId(c._id)}
-                      className="p-1.5 rounded-lg hover:bg-red-50"
-                    >
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </button>
-                  </div>
+
+                  {/* Only show edit/delete for admins */}
+                  {canManageCampaigns && (
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => openEdit(c)}
+                        className="p-1.5 rounded-lg hover:bg-secondary-100"
+                        title="Edit"
+                      >
+                        <Edit2 className="w-4 h-4 text-secondary-500" />
+                      </button>
+                      <button
+                        onClick={() => setDeleteId(c._id)}
+                        className="p-1.5 rounded-lg hover:bg-red-50"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-500" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )
@@ -213,102 +239,116 @@ const Campaigns = () => {
         </div>
       )}
 
-      {/* Modal */}
-      <Modal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title={editing ? 'Edit Campaign' : 'Create Campaign'}
-      >
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <label className="label">Campaign Title *</label>
-            <input
-              type="text"
-              className="input"
-              placeholder="New Church Building"
-              {...register('title', { required: 'Title is required' })}
-            />
-            {errors.title && (
-              <p className="text-xs text-red-500 mt-1">{errors.title.message}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="label">Description</label>
-            <textarea
-              rows="3"
-              className="input"
-              placeholder="Describe the campaign purpose..."
-              {...register('description')}
-            />
-          </div>
-
-          <div>
-            <label className="label">Target Amount (UGX) *</label>
-            <input
-              type="number"
-              className="input"
-              placeholder="1000000"
-              {...register('targetAmount', {
-                required: 'Target amount is required',
-                min: { value: 1, message: 'Must be greater than 0' },
-              })}
-            />
-            {errors.targetAmount && (
-              <p className="text-xs text-red-500 mt-1">{errors.targetAmount.message}</p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
+      {/* Modal - Only render if user can manage */}
+      {canManageCampaigns && (
+        <Modal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          title={editing ? 'Edit Campaign' : 'Create Campaign'}
+        >
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="label">Start Date *</label>
+              <label className="label">Campaign Title *</label>
               <input
-                type="date"
+                type="text"
                 className="input"
-                {...register('startDate', { required: 'Start date is required' })}
+                placeholder="New Church Building"
+                {...register('title', { required: 'Title is required' })}
               />
-              {errors.startDate && (
-                <p className="text-xs text-red-500 mt-1">{errors.startDate.message}</p>
+              {errors.title && (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.title.message}
+                </p>
               )}
             </div>
+
             <div>
-              <label className="label">End Date *</label>
-              <input
-                type="date"
+              <label className="label">Description</label>
+              <textarea
+                rows="3"
                 className="input"
-                {...register('endDate', { required: 'End date is required' })}
+                placeholder="Describe the campaign purpose..."
+                {...register('description')}
               />
-              {errors.endDate && (
-                <p className="text-xs text-red-500 mt-1">{errors.endDate.message}</p>
+            </div>
+
+            <div>
+              <label className="label">Target Amount (UGX) *</label>
+              <input
+                type="number"
+                className="input"
+                placeholder="1000000"
+                {...register('targetAmount', {
+                  required: 'Target amount is required',
+                  min: { value: 1, message: 'Must be greater than 0' },
+                })}
+              />
+              {errors.targetAmount && (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.targetAmount.message}
+                </p>
               )}
             </div>
-          </div>
 
-          {editing && (
-            <div>
-              <label className="label">Status</label>
-              <select className="input" {...register('status')}>
-                <option value="active">Active</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="label">Start Date *</label>
+                <input
+                  type="date"
+                  className="input"
+                  {...register('startDate', {
+                    required: 'Start date is required',
+                  })}
+                />
+                {errors.startDate && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.startDate.message}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="label">End Date *</label>
+                <input
+                  type="date"
+                  className="input"
+                  {...register('endDate', {
+                    required: 'End date is required',
+                  })}
+                />
+                {errors.endDate && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.endDate.message}
+                  </p>
+                )}
+              </div>
             </div>
-          )}
 
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={() => setModalOpen(false)}
-              className="btn btn-secondary"
-            >
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary">
-              {editing ? 'Update' : 'Create'}
-            </button>
-          </div>
-        </form>
-      </Modal>
+            {editing && (
+              <div>
+                <label className="label">Status</label>
+                <select className="input" {...register('status')}>
+                  <option value="active">Active</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="btn btn-secondary"
+              >
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-primary">
+                {editing ? 'Update' : 'Create'}
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
 
       <ConfirmDialog
         isOpen={!!deleteId}
