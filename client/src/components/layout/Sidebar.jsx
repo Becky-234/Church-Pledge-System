@@ -26,26 +26,24 @@ const Sidebar = ({ isOpen, onClose }) => {
     canViewNotifications,
   } = usePermissions()
   const { user, logout } = useAuth()
-  const navigate = useNavigate()
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
 
   const navItems = [
-    { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true, show: true },
-    { to: '/members', icon: Users, label: 'Members', show: canViewMembers },
-    { to: '/campaigns', icon: Megaphone, label: 'Campaigns', show: canViewCampaigns },
-    { to: '/pledges', icon: HandCoins, label: 'Pledges', show: canViewPledges },
-    { to: '/collections', icon: Wallet, label: 'Collections', show: canViewCollections },
-    { to: '/reports', icon: BarChart3, label: 'Reports', show: canViewReports },
-    { to: '/notifications', icon: Bell, label: 'Notifications', show: canViewNotifications },
+    { to: '/app', icon: LayoutDashboard, label: 'Dashboard', end: true, show: true },
+    { to: '/app/members', icon: Users, label: 'Members', show: canViewMembers },
+    { to: '/app/campaigns', icon: Megaphone, label: 'Campaigns', show: canViewCampaigns },
+    { to: '/app/pledges', icon: HandCoins, label: 'Pledges', show: canViewPledges },
+    { to: '/app/collections', icon: Wallet, label: 'Collections', show: canViewCollections },
+    { to: '/app/reports', icon: BarChart3, label: 'Reports', show: canViewReports },
+    { to: '/app/notifications', icon: Bell, label: 'Notifications', show: canViewNotifications },
   ].filter((item) => item.show)
 
   const handleLogout = async () => {
     setLoggingOut(true)
     try {
-      logout()
+      logout()  // AuthContext handles redirect
       toast.success('Logged out successfully')
-      navigate('/login')
     } finally {
       setLoggingOut(false)
       setLogoutConfirmOpen(false)
@@ -79,7 +77,6 @@ const Sidebar = ({ isOpen, onClose }) => {
           </div>
           <div>
             <h1 className="text-sm font-bold text-white">Church Pledge</h1>
-            <p className="text-xs text-white/60">Management System</p>
           </div>
         </div>
 
@@ -112,7 +109,6 @@ const Sidebar = ({ isOpen, onClose }) => {
           ))}
         </nav>
 
-        {/* User + Logout — pinned to bottom */}
         <div className="p-4 border-t border-white/15 shrink-0">
           <div className="flex items-center gap-3 mb-3 px-1">
             <div className="w-8 h-8 shrink-0 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center text-white font-semibold text-xs">
@@ -146,7 +142,6 @@ const Sidebar = ({ isOpen, onClose }) => {
         confirmText="Log out"
         cancelText="Stay signed in"
         loading={loggingOut}
-        icon={LogOut}
       />
     </>
   )

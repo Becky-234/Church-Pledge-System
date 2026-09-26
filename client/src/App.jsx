@@ -4,6 +4,7 @@ import Layout from './components/layout/Layout'
 import ProtectedRoute from './components/common/ProtectedRoute'
 import RoleRoute from './components/common/RoleRoute'
 
+import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
@@ -19,11 +20,22 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
-      <Route path="/register" element={user ? <Navigate to="/" /> : <Register />} />
+      {/* Public landing page */}
+      <Route path="/" element={<Landing />} />
 
+      {/* Public auth pages */}
       <Route
-        path="/"
+        path="/login"
+        element={user ? <Navigate to="/app" /> : <Login />}
+      />
+      <Route
+        path="/register"
+        element={user ? <Navigate to="/app" /> : <Register />}
+      />
+
+      {/* Protected app pages */}
+      <Route
+        path="/app"
         element={
           <ProtectedRoute>
             <Layout />
@@ -31,7 +43,6 @@ function App() {
         }
       >
         <Route index element={<Dashboard />} />
-
         <Route
           path="members"
           element={
@@ -40,7 +51,6 @@ function App() {
             </RoleRoute>
           }
         />
-
         <Route
           path="campaigns"
           element={
@@ -49,7 +59,6 @@ function App() {
             </RoleRoute>
           }
         />
-
         <Route
           path="pledges"
           element={
@@ -58,7 +67,6 @@ function App() {
             </RoleRoute>
           }
         />
-
         <Route
           path="collections"
           element={
@@ -67,7 +75,6 @@ function App() {
             </RoleRoute>
           }
         />
-
         <Route
           path="reports"
           element={
@@ -76,7 +83,6 @@ function App() {
             </RoleRoute>
           }
         />
-
         <Route
           path="notifications"
           element={
@@ -87,6 +93,7 @@ function App() {
         />
       </Route>
 
+      {/* Fallback */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   )
